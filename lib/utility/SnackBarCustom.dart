@@ -12,7 +12,7 @@ class SnackBarCustom {
   void showSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
-      duration: Durations.long4,
+      duration: Durations.long4 * 3,
     ));
   }
 }

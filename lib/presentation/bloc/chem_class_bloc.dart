@@ -12,6 +12,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
       try {
         await DataBaseService().addChemClass(
             event.shortName, event.name, event.baseUnits, event.mainClass);
+        add(GetAllChemClasses());
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
       }
@@ -22,6 +23,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         await DataBaseService().deleteChemClass(
           event.classId,
         );
+        add(GetAllChemClasses());
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
       }
@@ -31,6 +33,15 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
       try {
         final res = await DataBaseService().getAllChemClass();
         emit(ChemClassInitial(chems: res));
+      } catch (e) {
+        emit(ChemClassError(message: e.toString()));
+      }
+    });
+
+    on<ChangeParent>((event, emit) async {
+      try {
+        await DataBaseService().changeParent(event.classId, event.newClassId);
+        add(GetAllChemClasses());
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
       }

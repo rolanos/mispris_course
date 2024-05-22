@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mispris_course/entity/chem_class.dart';
 import 'package:mispris_course/entity/prod.dart';
 import 'package:mispris_course/entity/unit.dart';
+import 'package:mispris_course/presentation/bloc/chem_class_bloc.dart';
+import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
+import 'package:mispris_course/presentation/bloc/unit_bloc_bloc.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -44,37 +48,60 @@ class _ListPageState extends State<ListPage> {
           if (tableId == 0) ...[
             const ChemClassTableHeader(),
             Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                  return;
-                  // return ChemClassRow(
-                  //   chemClass: ChemClass(
-                  //       idClass: 1,
-                  //       baseUnits: 1,
-                  //       mainClass: 1,
-                  //       name: 'dsa',
-                  //       shortName: 'hr'),
-                  // );
+              child: BlocBuilder<ChemClassBloc, ChemClassState>(
+                builder: (context, state) {
+                  if (state is ChemClassInitial) {
+                    return ListView.builder(
+                      itemCount: state.chems.length,
+                      itemBuilder: (context, index) {
+                        return ChemClassRow(
+                          chemClass: state.chems[index],
+                        );
+                      },
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
                 },
               ),
             ),
           ] else if (tableId == 1) ...[
             const ProdTableHeader(),
             Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                  return;
-                  // return ProdRow();
+              child: BlocBuilder<ProdBloc, ProdState>(
+                builder: (context, state) {
+                  if (state is ProdInitial) {
+                    return ListView.builder(
+                      itemCount: state.prods.length,
+                      itemBuilder: (context, index) {
+                        return ProdRow(
+                          prod: state.prods[index],
+                        );
+                      },
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
                 },
               ),
             ),
           ] else ...[
             const UnitTableHeader(),
             Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                  return;
-                  // return UnitRow();
+              child: BlocBuilder<UnitBloc, UnitState>(
+                builder: (context, state) {
+                  if (state is UnitInitial) {
+                    return ListView.builder(
+                      itemCount: state.units.length,
+                      itemBuilder: (context, index) {
+                        return UnitRow(
+                          unit: state.units[index],
+                        );
+                      },
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
                 },
               ),
             ),
@@ -138,7 +165,7 @@ class ChemClassRow extends StatelessWidget {
       child: chemClass != null
           ? Container(
               color: Colors.deepOrange.shade100,
-              height: 30.0,
+              height: 42,
               child: Row(
                 children: [
                   Expanded(
