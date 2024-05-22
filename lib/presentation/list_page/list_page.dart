@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mispris_course/entity/chem_class.dart';
 import 'package:mispris_course/entity/prod.dart';
