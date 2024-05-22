@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:mispris_course/database_service.dart';
 
-void main() {
+import 'data_scripts.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  //await fillTestUnits();
+
+  final res = await DataBaseService().getAllChemClass();
+  final res2 = await DataBaseService().findChildren(3);
+
   runApp(const MyApp());
 }
 

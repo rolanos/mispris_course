@@ -73,7 +73,7 @@ abstract class DatabaseInterface {
 
   ///Процедура нахождения потомков у класса изделия
   ///[inputIdClass] - input_id_class
-  Future<List<ChemClass>> findChildred(int? inputIdClass);
+  Future<List<ChemClass>> findChildren(int? inputIdClass);
 }
 
 class DataBaseService implements DatabaseInterface {
@@ -137,6 +137,13 @@ class DataBaseService implements DatabaseInterface {
       String? shortName, String? name, int? baseUnits, int? mainClass) async {
     try {
       final database = await db;
+
+      if (!(await containsChemClass(mainClass))) {
+        Exception('Не существует базового класса c id = $mainClass');
+      }
+      if (!(await containsUnit(baseUnits))) {
+        Exception('Не существует ЕИ с id = $baseUnits');
+      }
       await database.insert(
         TableName.chemClass.name,
         ChemClass.toMapAdd(shortName, name, baseUnits, mainClass),
@@ -150,6 +157,9 @@ class DataBaseService implements DatabaseInterface {
   Future<void> addProd(String? shortName, String? name, int? idClass) async {
     try {
       final database = await db;
+      if (!(await containsChemClass(idClass))) {
+        Exception('Не существует базового класса c id = $idClass');
+      }
       await database.insert(
         TableName.prod.name,
         Prod.toMapAdd(shortName, name, idClass),
@@ -258,15 +268,78 @@ class DataBaseService implements DatabaseInterface {
   }
 
   @override
-  Future<List<ChemClass>> findChildred(int? inputIdClass) {
-    // TODO: implement findChildred
-    throw UnimplementedError();
+  Future<List<ChemClass>> findChildren(int? inputIdClass) async {
+    try {
+      if (inputIdClass == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+      List<ChemClass> classes = await getAllChemClass();
+      return findAllChildren(classes, inputIdClass);
+    } catch (e) {
+      log(e.toString());
+    }
+    return [];
+  }
+
+  List<ChemClass> findAllChildren(List<ChemClass> classes, int idClass) {
+    List<ChemClass> children = [];
+
+    ChemClass currentClass =
+        classes.firstWhere((element) => element.idClass == idClass);
+
+    if (currentClass != null) {
+      List<ChemClass> potentialChildren =
+          classes.where((element) => element.mainClass == idClass).toList();
+
+      for (ChemClass child in potentialChildren) {
+        children.add(child);
+        children.addAll(findAllChildren(classes, child.idClass));
+      }
+    }
+
+    return children;
   }
 
   @override
-  Future<List<ChemClass>> findParents(int? inElementId) {
-    // TODO: implement findParents
-    throw UnimplementedError();
+  Future<List<ChemClass>> findParents(int? inElementId) async {
+    try {
+      List<ChemClass> classes = await getAllChemClass();
+      List<ChemClass> parents = [];
+      if (inElementId == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+
+      if (classes
+          .where((element) => element.idClass == inElementId)
+          .isNotEmpty) {
+        ChemClass? currentClass =
+            classes.firstWhere((element) => element.idClass == inElementId);
+
+        while (currentClass != null) {
+          if (currentClass.mainClass != null) {
+            if (classes.indexWhere(
+                    (element) => element.idClass == currentClass!.mainClass) !=
+                -1) {
+              currentClass = classes.firstWhere(
+                  (element) => element.idClass == currentClass!.mainClass);
+              parents.add(currentClass);
+            }
+          } else {
+            currentClass = null;
+          }
+        }
+
+        return parents;
+      } else {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+    } catch (e) {
+      log(e.toString());
+    }
+    return [];
   }
 
   @override

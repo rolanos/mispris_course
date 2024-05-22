@@ -12,3 +12,12 @@ fillTestChemClass() async {
   await DataBaseService().addChemClass(null,
       'С самовоспламенением дизели 2-х тактные жидкостного охлаждения', 4, 3);
 }
+
+fillTestUnits() async {
+  await DataBaseService().addUnit('л', 'Литр', '112');
+  await DataBaseService().addUnit('кВт', 'Киловатт', '214');
+  await DataBaseService().addUnit('об/мин', 'Оборот в минуту', '331');
+  await DataBaseService().addUnit('шт', 'Штука', '796');
+  await DataBaseService().addUnit('100 шт', 'Сто штук', '797');
+  await DataBaseService().addUnit('тыс. шт.', 'Тысяча штук', '798');
+}
