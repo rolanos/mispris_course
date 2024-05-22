@@ -264,7 +264,7 @@ class DataBaseService implements DatabaseInterface {
       }
       final database = await db;
       await database.delete(
-        TableName.prod.name,
+        TableName.unit.name,
         where: 'id_units = ?',
         whereArgs: [unitId],
       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
+import 'package:mispris_course/presentation/bloc/unit_bloc_bloc.dart';
 import 'package:mispris_course/utility/SnackBarCustom.dart';
 
 class EditPage extends StatelessWidget {
@@ -155,7 +156,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const AddUnitAlertDialog(),
+                    builder: (context) => AddUnitAlertDialog(),
                   );
                 },
                 child: const Text('Добавить единицу'),
@@ -172,7 +173,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const DeleteUnitAlertDialog(),
+                    builder: (context) => DeleteUnitAlertDialog(),
                   );
                 },
                 child: const Text('Удалить единицу'),
@@ -512,33 +513,39 @@ class DeleteProdAlertDialog extends StatelessWidget {
 }
 
 class AddUnitAlertDialog extends StatelessWidget {
-  const AddUnitAlertDialog({super.key});
+  AddUnitAlertDialog({super.key});
+
+  final TextEditingController shortNameController = TextEditingController();
+
+  final TextEditingController nameController = TextEditingController();
+
+  final TextEditingController codeController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Добавить ЕИ'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Короткое название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: shortNameController),
+            const SizedBox(height: 8.0),
+            const Text(
               'Название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: nameController),
+            const SizedBox(height: 8.0),
+            const Text(
               'Код ЕИ',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: codeController),
           ],
         ),
       ),
@@ -551,6 +558,19 @@ class AddUnitAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<UnitBloc>().add(
+                  AddUnit(
+                    shortName: shortNameController.text.isNotEmpty
+                        ? shortNameController.text
+                        : null,
+                    name: nameController.text.isNotEmpty
+                        ? nameController.text
+                        : null,
+                    code: codeController.text.isNotEmpty
+                        ? codeController.text
+                        : null,
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
@@ -561,21 +581,23 @@ class AddUnitAlertDialog extends StatelessWidget {
 }
 
 class DeleteUnitAlertDialog extends StatelessWidget {
-  const DeleteUnitAlertDialog({super.key});
+  DeleteUnitAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Удалить ЕИ'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'id ЕИ',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idController),
           ],
         ),
       ),
@@ -588,6 +610,9 @@ class DeleteUnitAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<UnitBloc>().add(
+                  DeleteUnit(unitId: int.tryParse(idController.text)),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
