@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
 import 'package:mispris_course/utility/SnackBarCustom.dart';
 
 class EditPage extends StatelessWidget {
@@ -115,7 +117,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const AddProdAlertDialog(),
+                    builder: (context) => AddProdAlertDialog(),
                   );
                 },
                 child: const Text('Добавить изделие'),
@@ -132,7 +134,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const DeleteProdAlertDialog(),
+                    builder: (context) => DeleteProdAlertDialog(),
                   );
                 },
                 child: const Text('Удалить изделие'),
@@ -394,33 +396,43 @@ class FindChildrenClassAlertDialog extends StatelessWidget {
 }
 
 class AddProdAlertDialog extends StatelessWidget {
-  const AddProdAlertDialog({super.key});
+  AddProdAlertDialog({super.key});
+
+  final TextEditingController shortNameController = TextEditingController();
+
+  final TextEditingController nameController = TextEditingController();
+
+  final TextEditingController idController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Добавить продукт'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Короткое название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: shortNameController),
+            const SizedBox(height: 8.0),
+            const Text(
               'Название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(
+              controller: nameController,
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(
+              controller: idController,
+            ),
           ],
         ),
       ),
@@ -433,6 +445,19 @@ class AddProdAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<ProdBloc>().add(
+                  AddProd(
+                    shortName: shortNameController.text.isNotEmpty
+                        ? shortNameController.text
+                        : null,
+                    name: nameController.text.isNotEmpty
+                        ? nameController.text
+                        : null,
+                    idClass: idController.text.isNotEmpty
+                        ? int.tryParse(idController.text)
+                        : null,
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
@@ -443,21 +468,23 @@ class AddProdAlertDialog extends StatelessWidget {
 }
 
 class DeleteProdAlertDialog extends StatelessWidget {
-  const DeleteProdAlertDialog({super.key});
+  DeleteProdAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Удалить продукт'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'id продукта',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idController),
           ],
         ),
       ),
@@ -470,6 +497,11 @@ class DeleteProdAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<ProdBloc>().add(
+                  DeleteProd(
+                    productId: int.tryParse(idController.text),
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),

@@ -14,6 +14,7 @@ class ProdBloc extends Bloc<ProdEvent, ProdState> {
           event.name,
           event.idClass,
         );
+        add(GetAllProds());
       } catch (e) {
         emit(ProdError(message: e.toString()));
       }
@@ -24,6 +25,7 @@ class ProdBloc extends Bloc<ProdEvent, ProdState> {
         await DataBaseService().deleteProd(
           event.productId,
         );
+        add(GetAllProds());
       } catch (e) {
         emit(ProdError(message: e.toString()));
       }

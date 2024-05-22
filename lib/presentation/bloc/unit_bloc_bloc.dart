@@ -14,6 +14,7 @@ class UnitBloc extends Bloc<UnitEvent, UnitState> {
           event.name,
           event.code,
         );
+        add(GetAllUnits());
       } catch (e) {
         emit(UnitError(message: e.toString()));
       }
@@ -24,6 +25,7 @@ class UnitBloc extends Bloc<UnitEvent, UnitState> {
         await DataBaseService().deleteUnit(
           event.unitId,
         );
+        add(GetAllUnits());
       } catch (e) {
         emit(UnitError(message: e.toString()));
       }
