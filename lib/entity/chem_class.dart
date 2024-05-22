@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:json_annotation/json_annotation.dart';
 
 part 'chem_class.g.dart';
@@ -39,4 +40,20 @@ class ChemClass {
         'base_units': baseUnits,
         'main_class': mainClass,
       };
+
+  ChemClass copyWith({
+    int? idClass,
+    String? shortName,
+    String? name,
+    int? baseUnits,
+    int? mainClass,
+  }) {
+    return ChemClass(
+      idClass: idClass ?? this.idClass,
+      shortName: shortName ?? this.shortName,
+      name: name ?? this.name,
+      baseUnits: baseUnits ?? this.baseUnits,
+      mainClass: mainClass ?? this.mainClass,
+    );
+  }
 }

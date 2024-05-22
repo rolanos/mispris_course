@@ -173,9 +173,34 @@ class DataBaseService implements DatabaseInterface {
   }
 
   @override
-  Future<void> changeParent(int? classId, int? newParentId) {
-    // TODO: implement changeParent
-    throw UnimplementedError();
+  Future<void> changeParent(int? classId, int? newParentId) async {
+    try {
+      final database = await db;
+      final containsChild = await containsChemClass(classId);
+      final containsParent = await containsChemClass(classId);
+      if (!containsChild) {
+        throw Exception(
+            'В таблице ${TableName.chemClass.name} нет такого изделия');
+      }
+      if (!containsParent) {
+        throw Exception(
+            'В таблице ${TableName.chemClass.name} нет такого родительского изделия');
+      }
+
+      final data = await database.query(TableName.chemClass.name,
+          where: 'id_class=?', whereArgs: [classId]);
+
+      if (data.isNotEmpty) {
+        final buffer = ChemClass.fromJson(data.first);
+        final result = buffer.copyWith(mainClass: newParentId);
+        await database.update(
+          TableName.chemClass.name,
+          result.toJson(),
+        );
+      }
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override
@@ -258,14 +283,80 @@ class DataBaseService implements DatabaseInterface {
   }
 
   @override
-  Future<List<Prod>> getAllProds() {
-    // TODO: implement getAllProds
-    throw UnimplementedError();
+  Future<List<Prod>> getAllProds() async {
+    try {
+      final database = await db;
+      final data = await database.query(TableName.prod.name);
+      return List.generate(data.length, (index) => Prod.fromJson(data[index]));
+    } catch (e) {
+      log(e.toString());
+    }
+    return [];
   }
 
   @override
-  Future<List<Unit>> getAllUnits() {
-    // TODO: implement getAllUnits
-    throw UnimplementedError();
+  Future<List<Unit>> getAllUnits() async {
+    try {
+      final database = await db;
+      final data = await database.query(TableName.unit.name);
+      return List.generate(data.length, (index) => Unit.fromJson(data[index]));
+    } catch (e) {
+      log(e.toString());
+    }
+    return [];
+  }
+
+  Future<bool> containsChemClass(int? id) async {
+    if (id == null) {
+      return false;
+    }
+    try {
+      final database = await db;
+      final data = await database.query(
+        TableName.chemClass.name,
+        where: 'id_class=?',
+        whereArgs: [id],
+      );
+      return data.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+    }
+    return false;
+  }
+
+  Future<bool> containsUnit(int? id) async {
+    if (id == null) {
+      return false;
+    }
+    try {
+      final database = await db;
+      final data = await database.query(
+        TableName.unit.name,
+        where: 'id_units=?',
+        whereArgs: [id],
+      );
+      return data.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+    }
+    return false;
+  }
+
+  Future<bool> containsProd(int? id) async {
+    if (id == null) {
+      return false;
+    }
+    try {
+      final database = await db;
+      final data = await database.query(
+        TableName.unit.name,
+        where: 'id_prod=?',
+        whereArgs: [id],
+      );
+      return data.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+    }
+    return false;
   }
 }
