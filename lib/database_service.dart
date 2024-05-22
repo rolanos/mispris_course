@@ -282,14 +282,14 @@ class DataBaseService implements DatabaseInterface {
             'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
       }
       List<ChemClass> classes = await getAllChemClass();
-      return findAllChildren(classes, inputIdClass);
+      return _findAllChildren(classes, inputIdClass);
     } catch (e) {
       log(e.toString());
       rethrow;
     }
   }
 
-  List<ChemClass> findAllChildren(List<ChemClass> classes, int idClass) {
+  List<ChemClass> _findAllChildren(List<ChemClass> classes, int idClass) {
     List<ChemClass> children = [];
 
     ChemClass currentClass =
@@ -301,7 +301,7 @@ class DataBaseService implements DatabaseInterface {
 
       for (ChemClass child in potentialChildren) {
         children.add(child);
-        children.addAll(findAllChildren(classes, child.idClass));
+        children.addAll(_findAllChildren(classes, child.idClass));
       }
     }
 
