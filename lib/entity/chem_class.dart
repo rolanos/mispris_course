@@ -1,5 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 
+part 'chem_class.g.dart';
+
+@JsonSerializable()
 class ChemClass {
   @JsonKey(name: 'id_class')
   final int idClass;
@@ -22,4 +25,9 @@ class ChemClass {
       this.name,
       this.baseUnits,
       this.mainClass});
+
+  factory ChemClass.fromJson(Map<String, dynamic> json) =>
+      _$ChemClassFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChemClassToJson(this);
 }
