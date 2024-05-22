@@ -21,9 +21,9 @@ abstract class DatabaseInterface {
   //SELECT *
 
   ///Получение всех
-  Future<ChemClass> getAllChemClass();
-  Future<Prod> getAllProds();
-  Future<Unit> getAllUnits();
+  Future<List<ChemClass>> getAllChemClass();
+  Future<List<Prod>> getAllProds();
+  Future<List<Unit>> getAllUnits();
 
   //UNIT
 
@@ -115,7 +115,7 @@ class DataBaseService implements DatabaseInterface {
 ''');
     await database.execute('''
     CREATE TABLE ${TableName.chemClass.name} (
-    id_class INTEGER NOT NULL,
+    id_class INTEGER PRIMARY KEY,
     short_name TEXT(50),
     name TEXT(200),
     base_units INTEGER,
@@ -124,7 +124,7 @@ class DataBaseService implements DatabaseInterface {
 ''');
     await database.execute('''
     CREATE TABLE ${TableName.prod.name} (
-    id_prod INTEGER NOT NULL,
+    id_prod INTEGER PRIMARY KEY,
     short_name TEXT(50),
     name TEXT(250),
     id_class INTEGER NOT NULL
@@ -135,8 +135,8 @@ class DataBaseService implements DatabaseInterface {
   @override
   Future<void> addChemClass(
       String? shortName, String? name, int? baseUnits, int? mainClass) async {
-    final database = await db;
     try {
+      final database = await db;
       await database.insert(
         TableName.chemClass.name,
         ChemClass.toMapAdd(shortName, name, baseUnits, mainClass),
@@ -147,16 +147,29 @@ class DataBaseService implements DatabaseInterface {
   }
 
   @override
-  Future<void> addProd(String? shortName, String? name, int? idClass) {
-    // TODO: implement addProd
-    throw UnimplementedError();
+  Future<void> addProd(String? shortName, String? name, int? idClass) async {
+    try {
+      final database = await db;
+      await database.insert(
+        TableName.prod.name,
+        Prod.toMapAdd(shortName, name, idClass),
+      );
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override
-  Future<void> addUnit(
-      String? shortNameParam, String? nameParam, String? codeParam) {
-    // TODO: implement addUnit
-    throw UnimplementedError();
+  Future<void> addUnit(String? shortName, String? name, String? code) async {
+    try {
+      final database = await db;
+      await database.insert(
+        TableName.unit.name,
+        Unit.toMapAdd(shortName, name, code),
+      );
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override
@@ -166,21 +179,57 @@ class DataBaseService implements DatabaseInterface {
   }
 
   @override
-  Future<void> deleteChemClass(int? classId) {
-    // TODO: implement deleteChemClass
-    throw UnimplementedError();
+  Future<void> deleteChemClass(int? classId) async {
+    try {
+      if (classId == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+      final database = await db;
+      await database.delete(
+        TableName.chemClass.name,
+        where: 'id_class = ?',
+        whereArgs: [classId],
+      );
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override
-  Future<void> deleteProd(int? productId) {
-    // TODO: implement deleteProd
-    throw UnimplementedError();
+  Future<void> deleteProd(int? productId) async {
+    try {
+      if (productId == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
+      }
+      final database = await db;
+      await database.delete(
+        TableName.prod.name,
+        where: 'id_prod = ?',
+        whereArgs: [productId],
+      );
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override
-  Future<void> deleteUnit(int? unitId) {
-    // TODO: implement deleteUnit
-    throw UnimplementedError();
+  Future<void> deleteUnit(int? unitId) async {
+    try {
+      if (unitId == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.unit.name}');
+      }
+      final database = await db;
+      await database.delete(
+        TableName.prod.name,
+        where: 'id_units = ?',
+        whereArgs: [unitId],
+      );
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override
@@ -196,19 +245,26 @@ class DataBaseService implements DatabaseInterface {
   }
 
   @override
-  Future<ChemClass> getAllChemClass() {
-    // TODO: implement getAllChemClass
-    throw UnimplementedError();
+  Future<List<ChemClass>> getAllChemClass() async {
+    try {
+      final database = await db;
+      final data = await database.query(TableName.chemClass.name);
+      return List.generate(
+          data.length, (index) => ChemClass.fromJson(data[index]));
+    } catch (e) {
+      log(e.toString());
+    }
+    return [];
   }
 
   @override
-  Future<Prod> getAllProds() {
+  Future<List<Prod>> getAllProds() {
     // TODO: implement getAllProds
     throw UnimplementedError();
   }
 
   @override
-  Future<Unit> getAllUnits() {
+  Future<List<Unit>> getAllUnits() {
     // TODO: implement getAllUnits
     throw UnimplementedError();
   }
