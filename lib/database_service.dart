@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:mispris_course/entity/unit.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -103,14 +105,45 @@ class DataBaseService implements DatabaseInterface {
   }
 
   Future<void> create(Database database, int version) async {
-    ///TODO сделать создание таблиц
+    await database.execute('''
+    CREATE TABLE ${TableName.unit.name} (
+      id_units INTEGER PRIMARY KEY,
+      short_name TEXT(10),
+      name TEXT(50),
+      code TEXT(15)
+    );
+''');
+    await database.execute('''
+    CREATE TABLE ${TableName.chemClass.name} (
+    id_class INTEGER NOT NULL,
+    short_name TEXT(50),
+    name TEXT(200),
+    base_units INTEGER,
+    main_class INTEGER
+    );  
+''');
+    await database.execute('''
+    CREATE TABLE ${TableName.prod.name} (
+    id_prod INTEGER NOT NULL,
+    short_name TEXT(50),
+    name TEXT(250),
+    id_class INTEGER NOT NULL
+);  
+''');
   }
 
   @override
   Future<void> addChemClass(
-      String? shortName, String? name, int? baseUnits, int? mainClass) {
-    // TODO: implement addChemClass
-    throw UnimplementedError();
+      String? shortName, String? name, int? baseUnits, int? mainClass) async {
+    final database = await db;
+    try {
+      await database.insert(
+        TableName.chemClass.name,
+        ChemClass.toMapAdd(shortName, name, baseUnits, mainClass),
+      );
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   @override

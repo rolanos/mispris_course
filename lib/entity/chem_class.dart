@@ -30,4 +30,13 @@ class ChemClass {
       _$ChemClassFromJson(json);
 
   Map<String, dynamic> toJson() => _$ChemClassToJson(this);
+
+  static Map<String, dynamic> toMapAdd(
+          String? shortName, String? name, int? baseUnits, int? mainClass) =>
+      {
+        'short_name': shortName,
+        'name': name,
+        'base_units': baseUnits,
+        'main_class': mainClass,
+      };
 }

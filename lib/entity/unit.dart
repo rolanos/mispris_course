@@ -21,4 +21,12 @@ class Unit {
   factory Unit.fromJson(Map<String, dynamic> json) => _$UnitFromJson(json);
 
   Map<String, dynamic> toJson() => _$UnitToJson(this);
+
+  static Map<String, dynamic> toMapAdd(
+          String? shortName, String? name, String? idClass) =>
+      {
+        'short_name': shortName,
+        'name': name,
+        'code': idClass,
+      };
 }
