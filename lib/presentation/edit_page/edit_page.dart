@@ -10,178 +10,206 @@ class EditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Классы',
-              style: TextStyle(fontSize: 22.0),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AddChemClassAlertDialog(),
-                  );
-                },
-                child: const Text('Добавить класс'),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ChemClassBloc, ChemClassState>(
+          listener: (context, state) {
+            if (state is ChemClassError) {
+              SnackBarCustom(context: context, message: state.message)
+                  .showSnackBar();
+            }
+          },
+        ),
+        BlocListener<ProdBloc, ProdState>(
+          listener: (context, state) {
+            if (state is ProdError) {
+              SnackBarCustom(context: context, message: state.message)
+                  .showSnackBar();
+            }
+          },
+        ),
+        BlocListener<UnitBloc, UnitState>(
+          listener: (context, state) {
+            if (state is UnitError) {
+              SnackBarCustom(context: context, message: state.message)
+                  .showSnackBar();
+            }
+          },
+        )
+      ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Классы',
+                style: TextStyle(fontSize: 22.0),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddChemClassAlertDialog(),
+                    );
+                  },
+                  child: const Text('Добавить класс'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => DeleteClassAlertDialog(),
-                  );
-                },
-                child: const Text('Удалить класс'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => DeleteClassAlertDialog(),
+                    );
+                  },
+                  child: const Text('Удалить класс'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ChangeParentClassAlertDialog(),
-                  );
-                },
-                child: const Text('Изменить родителя'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ChangeParentClassAlertDialog(),
+                    );
+                  },
+                  child: const Text('Изменить родителя'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => FindParentsClassAlertDialog(),
-                  );
-                },
-                child: const Text('Найти родителей'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => FindParentsClassAlertDialog(),
+                    );
+                  },
+                  child: const Text('Найти родителей'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => FindChildrenClassAlertDialog(),
-                  );
-                },
-                child: const Text('Найти потомков'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            const Text(
-              'Изделия',
-              style: TextStyle(fontSize: 22.0),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => FindChildrenClassAlertDialog(),
+                    );
+                  },
+                  child: const Text('Найти потомков'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AddProdAlertDialog(),
-                  );
-                },
-                child: const Text('Добавить изделие'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              const Text(
+                'Изделия',
+                style: TextStyle(fontSize: 22.0),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddProdAlertDialog(),
+                    );
+                  },
+                  child: const Text('Добавить изделие'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => DeleteProdAlertDialog(),
-                  );
-                },
-                child: const Text('Удалить изделие'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            const Text(
-              'Единицы измерения',
-              style: TextStyle(fontSize: 22.0),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => DeleteProdAlertDialog(),
+                    );
+                  },
+                  child: const Text('Удалить изделие'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AddUnitAlertDialog(),
-                  );
-                },
-                child: const Text('Добавить единицу'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 16.0,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade100,
-                  shape: const BeveledRectangleBorder(),
+              const SizedBox(height: 8.0),
+              const Text(
+                'Единицы измерения',
+                style: TextStyle(fontSize: 22.0),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddUnitAlertDialog(),
+                    );
+                  },
+                  child: const Text('Добавить единицу'),
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => DeleteUnitAlertDialog(),
-                  );
-                },
-                child: const Text('Удалить единицу'),
               ),
-            ),
-            const SizedBox(height: 8.0),
-          ],
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => DeleteUnitAlertDialog(),
+                    );
+                  },
+                  child: const Text('Удалить единицу'),
+                ),
+              ),
+              const SizedBox(height: 8.0),
+            ],
+          ),
         ),
       ),
     );
