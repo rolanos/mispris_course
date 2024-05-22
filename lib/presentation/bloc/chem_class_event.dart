@@ -22,6 +22,13 @@ class DeleteChemClass extends ChemClassEvent {
 
 class GetAllChemClasses extends ChemClassEvent {}
 
+class ChangeParent extends ChemClassEvent {
+  final int? classId;
+  final int? newClassId;
+
+  ChangeParent({required this.classId, required this.newClassId});
+}
+
 class FindChildren extends ChemClassEvent {
   final int? id;
 

@@ -38,6 +38,15 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
       }
     });
 
+    on<ChangeParent>((event, emit) async {
+      try {
+        await DataBaseService().changeParent(event.classId, event.newClassId);
+        add(GetAllChemClasses());
+      } catch (e) {
+        emit(ChemClassError(message: e.toString()));
+      }
+    });
+
     on<FindChildren>((event, emit) async {
       try {
         final res = await DataBaseService().findChildren(event.id);

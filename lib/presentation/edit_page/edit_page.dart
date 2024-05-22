@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mispris_course/presentation/bloc/chem_class_bloc.dart';
 import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
 import 'package:mispris_course/presentation/bloc/unit_bloc_bloc.dart';
 import 'package:mispris_course/utility/SnackBarCustom.dart';
@@ -29,7 +30,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const AddChemClassAlertDialog(),
+                    builder: (context) => AddChemClassAlertDialog(),
                   );
                 },
                 child: const Text('Добавить класс'),
@@ -46,7 +47,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const DeleteClassAlertDialog(),
+                    builder: (context) => DeleteClassAlertDialog(),
                   );
                 },
                 child: const Text('Удалить класс'),
@@ -63,7 +64,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const ChangeParentClassAlertDialog(),
+                    builder: (context) => ChangeParentClassAlertDialog(),
                   );
                 },
                 child: const Text('Изменить родителя'),
@@ -80,7 +81,7 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const FindParentsClassAlertDialog(),
+                    builder: (context) => FindParentsClassAlertDialog(),
                   );
                 },
                 child: const Text('Найти родителей'),
@@ -97,10 +98,10 @@ class EditPage extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => const FindChildrenClassAlertDialog(),
+                    builder: (context) => FindChildrenClassAlertDialog(),
                   );
                 },
-                child: const Text('Изменить потомков'),
+                child: const Text('Найти потомков'),
               ),
             ),
             const SizedBox(height: 8.0),
@@ -188,39 +189,47 @@ class EditPage extends StatelessWidget {
 }
 
 class AddChemClassAlertDialog extends StatelessWidget {
-  const AddChemClassAlertDialog({super.key});
+  AddChemClassAlertDialog({super.key});
+
+  final TextEditingController shortNameController = TextEditingController();
+
+  final TextEditingController nameController = TextEditingController();
+
+  final TextEditingController idUnitController = TextEditingController();
+
+  final TextEditingController idClassController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Добавить класс'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Короткое название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: shortNameController),
+            const SizedBox(height: 8.0),
+            const Text(
               'Название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: nameController),
+            const SizedBox(height: 8.0),
+            const Text(
               'id ЕИ',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: idUnitController),
+            const SizedBox(height: 8.0),
+            const Text(
               'id родителя',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idClassController),
           ],
         ),
       ),
@@ -233,6 +242,18 @@ class AddChemClassAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<ChemClassBloc>().add(
+                  AddChemClass(
+                    shortName: shortNameController.text.isNotEmpty
+                        ? shortNameController.text
+                        : null,
+                    name: nameController.text.isNotEmpty
+                        ? nameController.text
+                        : null,
+                    baseUnits: int.tryParse(idUnitController.text),
+                    mainClass: int.tryParse(idClassController.text),
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
@@ -243,21 +264,23 @@ class AddChemClassAlertDialog extends StatelessWidget {
 }
 
 class DeleteClassAlertDialog extends StatelessWidget {
-  const DeleteClassAlertDialog({super.key});
+  DeleteClassAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Удалить класс'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idController),
           ],
         ),
       ),
@@ -271,6 +294,9 @@ class DeleteClassAlertDialog extends StatelessWidget {
         TextButton(
           onPressed: () {
             Navigator.pop(context);
+            context
+                .read<ChemClassBloc>()
+                .add(DeleteChemClass(classId: int.parse(idController.text)));
           },
           child: const Text('Подтвердить'),
         ),
@@ -280,27 +306,32 @@ class DeleteClassAlertDialog extends StatelessWidget {
 }
 
 class ChangeParentClassAlertDialog extends StatelessWidget {
-  const ChangeParentClassAlertDialog({super.key});
+  ChangeParentClassAlertDialog({super.key});
+
+  final TextEditingController idClassController = TextEditingController();
+
+  final TextEditingController idNewBaseClassController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Изменить родителя'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
-            SizedBox(height: 8.0),
-            Text(
+            TextField(controller: idClassController),
+            const SizedBox(height: 8.0),
+            const Text(
               'id нового родителя',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idNewBaseClassController),
           ],
         ),
       ),
@@ -313,6 +344,12 @@ class ChangeParentClassAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<ChemClassBloc>().add(
+                  ChangeParent(
+                    classId: int.tryParse(idClassController.text),
+                    newClassId: int.tryParse(idNewBaseClassController.text),
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
@@ -323,21 +360,23 @@ class ChangeParentClassAlertDialog extends StatelessWidget {
 }
 
 class FindParentsClassAlertDialog extends StatelessWidget {
-  const FindParentsClassAlertDialog({super.key});
+  FindParentsClassAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Найти родителей'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idController),
           ],
         ),
       ),
@@ -350,6 +389,13 @@ class FindParentsClassAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<ChemClassBloc>().add(
+                  FindParents(
+                    id: int.tryParse(
+                      idController.text,
+                    ),
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
@@ -360,21 +406,23 @@ class FindParentsClassAlertDialog extends StatelessWidget {
 }
 
 class FindChildrenClassAlertDialog extends StatelessWidget {
-  const FindChildrenClassAlertDialog({super.key});
+  FindChildrenClassAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Найти потомков'),
-      content: const SingleChildScrollView(
+      content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(),
+            TextField(controller: idController),
           ],
         ),
       ),
@@ -387,6 +435,11 @@ class FindChildrenClassAlertDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {
+            context.read<ChemClassBloc>().add(
+                  FindChildren(
+                    id: int.tryParse(idController.text),
+                  ),
+                );
             Navigator.pop(context);
           },
           child: const Text('Подтвердить'),
