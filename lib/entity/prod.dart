@@ -26,4 +26,12 @@ class Prod {
   factory Prod.fromJson(Map<String, dynamic> json) => _$ProdFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProdToJson(this);
+
+  static Map<String, dynamic> toMapAdd(
+          String? shortName, String? name, int? idClass) =>
+      {
+        'short_name': shortName,
+        'name': name,
+        'id_class': idClass,
+      };
 }
