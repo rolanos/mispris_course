@@ -21,3 +21,10 @@ fillTestUnits() async {
   await DataBaseService().addUnit('100 шт', 'Сто штук', '797');
   await DataBaseService().addUnit('тыс. шт.', 'Тысяча штук', '798');
 }
+
+fillTestProd() async {
+  await DataBaseService().addProd(null, 'Cummins ISB6.7', 4);
+  await DataBaseService().addProd(null, 'Yanmar 2GM20', 5);
+  await DataBaseService().addProd(null, 'JZ', 6);
+  await DataBaseService().addProd(null, '2JZ', 6);
+}
