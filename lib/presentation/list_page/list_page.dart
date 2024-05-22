@@ -142,8 +142,15 @@ class ChemClassTableHeader extends StatelessWidget {
           width: 10.0,
         ),
         Expanded(
-          flex: 6,
-          child: Text('Единицы изм.'),
+          flex: 3,
+          child: Text('ЕИ'),
+        ),
+        SizedBox(
+          width: 10.0,
+        ),
+        Expanded(
+          flex: 3,
+          child: Text('Род. кл.'),
         ),
       ],
     );
@@ -190,8 +197,15 @@ class ChemClassRow extends StatelessWidget {
                     width: 10.0,
                   ),
                   Expanded(
-                    flex: 6,
+                    flex: 3,
                     child: Text((chemClass!.baseUnits ?? 'Нет').toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text((chemClass!.mainClass ?? 'Нет').toString()),
                   ),
                 ],
               ),
