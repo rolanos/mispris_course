@@ -14,6 +14,10 @@ final router = GoRouter(
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) {
         return Scaffold(
+          appBar: AppBar(
+            title: const Text('Классификатор'),
+            backgroundColor: Colors.deepOrange.shade300,
+          ),
           body: shell,
           bottomNavigationBar: MainNavigationBar(shell: shell),
         );
