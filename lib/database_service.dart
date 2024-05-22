@@ -150,6 +150,7 @@ class DataBaseService implements DatabaseInterface {
       );
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -166,6 +167,7 @@ class DataBaseService implements DatabaseInterface {
       );
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -179,6 +181,7 @@ class DataBaseService implements DatabaseInterface {
       );
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -210,6 +213,7 @@ class DataBaseService implements DatabaseInterface {
       }
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -228,6 +232,7 @@ class DataBaseService implements DatabaseInterface {
       );
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -246,6 +251,7 @@ class DataBaseService implements DatabaseInterface {
       );
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -264,6 +270,7 @@ class DataBaseService implements DatabaseInterface {
       );
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
   }
 
@@ -278,8 +285,8 @@ class DataBaseService implements DatabaseInterface {
       return findAllChildren(classes, inputIdClass);
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return [];
   }
 
   List<ChemClass> findAllChildren(List<ChemClass> classes, int idClass) {
@@ -338,8 +345,8 @@ class DataBaseService implements DatabaseInterface {
       }
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return [];
   }
 
   @override
@@ -351,8 +358,8 @@ class DataBaseService implements DatabaseInterface {
           data.length, (index) => ChemClass.fromJson(data[index]));
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return [];
   }
 
   @override
@@ -363,8 +370,8 @@ class DataBaseService implements DatabaseInterface {
       return List.generate(data.length, (index) => Prod.fromJson(data[index]));
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return [];
   }
 
   @override
@@ -375,8 +382,8 @@ class DataBaseService implements DatabaseInterface {
       return List.generate(data.length, (index) => Unit.fromJson(data[index]));
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return [];
   }
 
   Future<bool> containsChemClass(int? id) async {
@@ -393,8 +400,8 @@ class DataBaseService implements DatabaseInterface {
       return data.isNotEmpty;
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return false;
   }
 
   Future<bool> containsUnit(int? id) async {
@@ -411,8 +418,8 @@ class DataBaseService implements DatabaseInterface {
       return data.isNotEmpty;
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return false;
   }
 
   Future<bool> containsProd(int? id) async {
@@ -429,7 +436,7 @@ class DataBaseService implements DatabaseInterface {
       return data.isNotEmpty;
     } catch (e) {
       log(e.toString());
+      rethrow;
     }
-    return false;
   }
 }
