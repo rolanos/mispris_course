@@ -47,7 +47,14 @@ class _ListPageState extends State<ListPage> {
               child: ListView.builder(
                 itemBuilder: (context, index) {
                   return;
-                  // return ChemClassRow();
+                  // return ChemClassRow(
+                  //   chemClass: ChemClass(
+                  //       idClass: 1,
+                  //       baseUnits: 1,
+                  //       mainClass: 1,
+                  //       name: 'dsa',
+                  //       shortName: 'hr'),
+                  // );
                 },
               ),
             ),
@@ -126,44 +133,44 @@ class ChemClassRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return chemClass != null
-        ? Container(
-            color: Colors.deepOrange.shade100,
-            height: 30.0,
-            padding: const EdgeInsets.only(
-              bottom: 8.0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(chemClass!.idClass.toString()),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Text(chemClass!.shortName ?? 'Нет'),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 10,
-                  child: Text(chemClass!.name ?? 'Нет'),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Text((chemClass!.baseUnits ?? 'Нет').toString()),
-                ),
-              ],
-            ),
-          )
-        : const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: chemClass != null
+          ? Container(
+              color: Colors.deepOrange.shade100,
+              height: 30.0,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(chemClass!.idClass.toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Text(chemClass!.shortName ?? 'Нет'),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 10,
+                    child: Text(chemClass!.name ?? 'Нет'),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Text((chemClass!.baseUnits ?? 'Нет').toString()),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
   }
 }
 
@@ -214,44 +221,44 @@ class ProdRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return prod != null
-        ? Container(
-            color: Colors.deepOrange.shade100,
-            height: 30.0,
-            padding: const EdgeInsets.only(
-              bottom: 8.0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(prod!.idProd.toString()),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Text(prod!.shortName ?? 'Нет'),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 10,
-                  child: Text(prod!.name ?? 'Нет'),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Text((prod!.idClass).toString()),
-                ),
-              ],
-            ),
-          )
-        : const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: prod != null
+          ? Container(
+              color: Colors.deepOrange.shade100,
+              height: 30.0,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(prod!.idProd.toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Text(prod!.shortName ?? 'Нет'),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 10,
+                    child: Text(prod!.name ?? 'Нет'),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Text((prod!.idClass).toString()),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
   }
 }
 
@@ -302,43 +309,46 @@ class UnitRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return unit != null
-        ? Container(
-            color: Colors.deepOrange.shade100,
-            height: 30.0,
-            padding: const EdgeInsets.only(
-              bottom: 8.0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Text(unit!.idUnits.toString()),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Text(unit!.shortName ?? 'Нет'),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 10,
-                  child: Text(unit!.name ?? 'Нет'),
-                ),
-                const SizedBox(
-                  width: 10.0,
-                ),
-                Expanded(
-                  flex: 6,
-                  child: Text((unit!.code ?? 'Нет').toString()),
-                ),
-              ],
-            ),
-          )
-        : const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: unit != null
+          ? Container(
+              color: Colors.deepOrange.shade100,
+              height: 30.0,
+              padding: const EdgeInsets.only(
+                bottom: 8.0,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(unit!.idUnits.toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Text(unit!.shortName ?? 'Нет'),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 10,
+                    child: Text(unit!.name ?? 'Нет'),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Text((unit!.code ?? 'Нет').toString()),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
   }
 }
