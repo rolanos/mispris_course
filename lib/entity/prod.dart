@@ -1,5 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 
+part 'prod.g.dart';
+
+@JsonSerializable()
 class Prod {
   @JsonKey(name: 'id_prod')
   final int idProd;
@@ -19,4 +22,8 @@ class Prod {
     this.name,
     required this.idClass,
   });
+
+  factory Prod.fromJson(Map<String, dynamic> json) => _$ProdFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ProdToJson(this);
 }
