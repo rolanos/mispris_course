@@ -209,6 +209,8 @@ class DataBaseService implements DatabaseInterface {
         await database.update(
           TableName.chemClass.name,
           result.toJson(),
+          where: 'id_class=?',
+          whereArgs: [classId],
         );
       }
     } catch (e) {
