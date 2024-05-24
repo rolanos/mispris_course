@@ -138,11 +138,18 @@ class DataBaseService implements DatabaseInterface {
     try {
       final database = await db;
 
+      if (shortName == null &&
+          name == null &&
+          baseUnits == null &&
+          mainClass == null) {
+        throw Exception('Пустая форма');
+      }
+
       if (!(await containsChemClass(mainClass))) {
-        Exception('Не существует базового класса c id = $mainClass');
+        throw Exception('Не существует базового класса c id = $mainClass');
       }
       if (!(await containsUnit(baseUnits))) {
-        Exception('Не существует ЕИ с id = $baseUnits');
+        throw Exception('Не существует ЕИ с id = $baseUnits');
       }
       await database.insert(
         TableName.chemClass.name,
@@ -157,9 +164,13 @@ class DataBaseService implements DatabaseInterface {
   @override
   Future<void> addProd(String? shortName, String? name, int? idClass) async {
     try {
+      if (shortName == null && name == null && idClass == null) {
+        throw Exception('Пустая форма');
+      }
+
       final database = await db;
       if (!(await containsChemClass(idClass))) {
-        Exception('Не существует базового класса c id = $idClass');
+        throw Exception('Не существует базового класса c id = $idClass');
       }
       await database.insert(
         TableName.prod.name,
@@ -174,6 +185,9 @@ class DataBaseService implements DatabaseInterface {
   @override
   Future<void> addUnit(String? shortName, String? name, String? code) async {
     try {
+      if (shortName == null && name == null && code == null) {
+        throw Exception('Пустая форма');
+      }
       final database = await db;
       await database.insert(
         TableName.unit.name,

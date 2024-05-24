@@ -335,7 +335,7 @@ class DeleteClassAlertDialog extends StatelessWidget {
             Navigator.pop(context);
             context
                 .read<ChemClassBloc>()
-                .add(DeleteChemClass(classId: int.parse(idController.text)));
+                .add(DeleteChemClass(classId: int.tryParse(idController.text)));
           },
           child: const Text('Подтвердить'),
         ),
