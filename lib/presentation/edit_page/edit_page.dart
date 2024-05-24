@@ -239,7 +239,10 @@ class AddChemClassAlertDialog extends StatelessWidget {
               'Короткое название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: shortNameController),
+            TextField(
+              controller: shortNameController,
+              keyboardType: TextInputType.text,
+            ),
             const SizedBox(height: 8.0),
             const Text(
               'Название',
