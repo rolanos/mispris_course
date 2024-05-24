@@ -248,19 +248,26 @@ class AddChemClassAlertDialog extends StatelessWidget {
               'Название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: nameController),
+            TextField(
+              controller: nameController,
+              keyboardType: TextInputType.text,
+            ),
             const SizedBox(height: 8.0),
             const Text(
               'id ЕИ',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idUnitController),
+            TextField(
+                controller: idUnitController,
+                keyboardType: TextInputType.number),
             const SizedBox(height: 8.0),
             const Text(
               'id родителя',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idClassController),
+            TextField(
+                controller: idClassController,
+                keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -311,7 +318,8 @@ class DeleteClassAlertDialog extends StatelessWidget {
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idController),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -356,13 +364,17 @@ class ChangeParentClassAlertDialog extends StatelessWidget {
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idClassController),
+            TextField(
+                controller: idClassController,
+                keyboardType: TextInputType.number),
             const SizedBox(height: 8.0),
             const Text(
               'id нового родителя',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idNewBaseClassController),
+            TextField(
+                controller: idNewBaseClassController,
+                keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -407,7 +419,8 @@ class FindParentsClassAlertDialog extends StatelessWidget {
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idController),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -453,7 +466,8 @@ class FindChildrenClassAlertDialog extends StatelessWidget {
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idController),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -501,23 +515,23 @@ class AddProdAlertDialog extends StatelessWidget {
               'Короткое название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: shortNameController),
+            TextField(
+                controller: shortNameController,
+                keyboardType: TextInputType.text),
             const SizedBox(height: 8.0),
             const Text(
               'Название',
               style: TextStyle(fontSize: 20.0),
             ),
             TextField(
-              controller: nameController,
-            ),
+                controller: nameController, keyboardType: TextInputType.text),
             const SizedBox(height: 8.0),
             const Text(
               'id класса',
               style: TextStyle(fontSize: 20.0),
             ),
             TextField(
-              controller: idController,
-            ),
+                controller: idController, keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -569,7 +583,8 @@ class DeleteProdAlertDialog extends StatelessWidget {
               'id продукта',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idController),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -617,19 +632,23 @@ class AddUnitAlertDialog extends StatelessWidget {
               'Короткое название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: shortNameController),
+            TextField(
+                controller: shortNameController,
+                keyboardType: TextInputType.text),
             const SizedBox(height: 8.0),
             const Text(
               'Название',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: nameController),
+            TextField(
+                controller: nameController, keyboardType: TextInputType.text),
             const SizedBox(height: 8.0),
             const Text(
               'Код ЕИ',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: codeController),
+            TextField(
+                controller: codeController, keyboardType: TextInputType.text),
           ],
         ),
       ),
@@ -681,7 +700,8 @@ class DeleteUnitAlertDialog extends StatelessWidget {
               'id ЕИ',
               style: TextStyle(fontSize: 20.0),
             ),
-            TextField(controller: idController),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
           ],
         ),
       ),
