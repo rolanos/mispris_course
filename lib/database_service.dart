@@ -71,6 +71,13 @@ abstract class DatabaseInterface {
   Future<void> addSpecProd(
       int idProd, int? positionNumber, int? idProdPart, int? quantity);
 
+  Future<void> editSpecProd({
+    required int idProdGeneral,
+    required int positionNumber,
+    required int newIdProdPart,
+    required int newQuantity,
+  });
+
   /// Процедура удаления продукта из таблицы spec_prod
   Future<void> deleteSpecProd(int? id);
 
@@ -497,8 +504,12 @@ class DataBaseService implements DatabaseInterface {
 
   @override
   Future<void> addSpecProd(
-      int idProd, int? positionNumber, int? idProdPart, int? quantity) async {
+      int? idProd, int? positionNumber, int? idProdPart, int? quantity) async {
     try {
+      if (idProd == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
+      }
       if (positionNumber == null && idProdPart == null && quantity == null) {
         throw Exception('Пустая форма');
       }
@@ -530,6 +541,77 @@ class DataBaseService implements DatabaseInterface {
         TableName.specProd.name,
         where: 'id_prod = ?',
         whereArgs: [id],
+      );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> editSpecProd({
+    required int? idProdGeneral,
+    required int? positionNumber,
+    required int? newIdProdPart,
+    required int? newQuantity,
+  }) async {
+    try {
+      if (idProdGeneral == null || positionNumber == null) {
+        throw Exception(
+            'Нет данных для такого ключа в таблице ${TableName.prod.name}');
+      }
+
+      final database = await db;
+
+      // Проверяем, существует ли строка спецификации
+      final existingSpec = await database.query(
+        'specprod',
+        columns: ['id_prod_general', 'position_number'],
+        where: 'id_prod_general = ? AND position_number = ?',
+        whereArgs: [idProdGeneral, positionNumber],
+      );
+
+      if (existingSpec.isEmpty) {
+        throw Exception('Ошибка: Строка спецификации не найдена.');
+      }
+
+      // Прямая проверка: продукт не может состоять сам из себя
+      if (idProdGeneral == newIdProdPart) {
+        throw Exception('Ошибка: Продукт не может состоять сам из себя.');
+      }
+
+      // Проверка на циклы
+      final isCycle = await database.rawQuery('''
+      WITH RECURSIVE check_cycle(id_general, id_part) AS (
+        SELECT id_prod_general, id_prod_part
+        FROM specprod
+        WHERE id_prod_general = ?
+
+        UNION
+
+        SELECT sp.id_prod_general, sp.id_prod_part
+        FROM specprod sp
+        JOIN check_cycle cc ON sp.id_prod_general = cc.id_part
+      )
+      SELECT COUNT(*) AS cycle_count
+      FROM check_cycle
+      WHERE id_general = ? AND id_part = ?;
+    ''', [newIdProdPart, newIdProdPart, idProdGeneral]);
+
+      if ((isCycle.first['cycle_count'] as int) > 0) {
+        throw Exception(
+            'Ошибка: Невозможно редактировать строку спецификации из-за циклической зависимости.');
+      }
+
+      // Обновляем строку спецификации
+      await database.update(
+        'specprod',
+        {
+          'id_prod_part': newIdProdPart,
+          'quantity': newQuantity,
+        },
+        where: 'id_prod_general = ? AND position_number = ?',
+        whereArgs: [idProdGeneral, positionNumber],
       );
     } catch (e) {
       log(e.toString());
