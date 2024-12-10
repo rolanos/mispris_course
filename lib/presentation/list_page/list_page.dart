@@ -8,6 +8,8 @@ import 'package:mispris_course/presentation/bloc/chem_class_bloc.dart';
 import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
 import 'package:mispris_course/presentation/bloc/unit_bloc_bloc.dart';
 
+import '../bloc/spec_prod_bloc.dart';
+
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
 
@@ -115,9 +117,9 @@ class _ListPageState extends State<ListPage> {
             Expanded(
               child: BlocBuilder<SpecProdBloc, SpecProdState>(
                 builder: (context, state) {
-                  if (state is UnitInitial) {
+                  if (state is SpecProdInitial) {
                     return ListView.builder(
-                      itemCount: state.units.length,
+                      itemCount: state.specProds.length,
                       itemBuilder: (context, index) {
                         return SpecProdTableRow(
                           specProd: state.specProds[index],
