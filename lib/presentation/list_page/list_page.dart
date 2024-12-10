@@ -429,7 +429,7 @@ class SpecProdTableHeader extends StatelessWidget {
     return const Row(
       children: [
         Expanded(
-          flex: 4,
+          flex: 2,
           child: Text('id продукции'),
         ),
         SizedBox(
@@ -443,7 +443,7 @@ class SpecProdTableHeader extends StatelessWidget {
           width: 10.0,
         ),
         Expanded(
-          flex: 10,
+          flex: 2,
           child: Text('Вход. изделие'),
         ),
         SizedBox(
@@ -480,7 +480,7 @@ class SpecProdTableRow extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 4,
+                    flex: 2,
                     child: Text(specProd!.idProd.toString()),
                   ),
                   const SizedBox(
@@ -494,7 +494,7 @@ class SpecProdTableRow extends StatelessWidget {
                     width: 10.0,
                   ),
                   Expanded(
-                    flex: 10,
+                    flex: 2,
                     child: Text((specProd!.idProdPart ?? 'Нет').toString()),
                   ),
                   const SizedBox(
