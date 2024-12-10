@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mispris_course/presentation/bloc/chem_class_bloc.dart';
 import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
+import 'package:mispris_course/presentation/bloc/spec_prod_bloc.dart';
 import 'package:mispris_course/presentation/bloc/unit_bloc_bloc.dart';
 import 'package:mispris_course/presentation/router.dart';
 
@@ -16,6 +17,8 @@ class MisprisApp extends StatelessWidget {
         BlocProvider(create: (context) => ProdBloc()..add(GetAllProds())),
         BlocProvider(
             create: (context) => ChemClassBloc()..add(GetAllChemClasses())),
+        BlocProvider(
+            create: (context) => SpecProdBloc()..add(GetAllSpecProds())),
       ],
       child: MaterialApp.router(
         title: 'Классификатор',
