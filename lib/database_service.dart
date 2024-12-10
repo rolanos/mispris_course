@@ -145,7 +145,7 @@ class DataBaseService implements DatabaseInterface {
         throw Exception('Пустая форма');
       }
 
-      if (!(await containsChemClass(mainClass))) {
+      if (!(await containsChemClass(mainClass)) && mainClass != null) {
         throw Exception('Не существует базового класса c id = $mainClass');
       }
       if (!(await containsUnit(baseUnits))) {
@@ -284,6 +284,34 @@ class DataBaseService implements DatabaseInterface {
         where: 'id_units = ?',
         whereArgs: [unitId],
       );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<List<Prod>> findProdChildren(int? inputIdClass) async {
+    try {
+      final database = await db;
+      if (inputIdClass == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+      if (!(await containsChemClass(inputIdClass))) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+      final list = await findChildren(inputIdClass);
+      final buffer = await database.query(TableName.chemClass.name,
+          where: 'id_class = ?', whereArgs: [inputIdClass]);
+      list.add(ChemClass.fromJson(buffer.first));
+      var resBuffer = <Prod>[];
+      for (var element in list) {
+        final a = await database.query(TableName.prod.name,
+            where: 'id_class = ?', whereArgs: [element.idClass]);
+        if (a.isNotEmpty) resBuffer.add(Prod.fromJson(a.first));
+      }
+      return resBuffer;
     } catch (e) {
       log(e.toString());
       rethrow;
