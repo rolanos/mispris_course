@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mispris_course/presentation/bloc/chem_class_bloc.dart';
 import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
+import 'package:mispris_course/presentation/bloc/spec_prod_bloc.dart';
 import 'package:mispris_course/presentation/bloc/unit_bloc_bloc.dart';
 import 'package:mispris_course/utility/SnackBarCustom.dart';
 
@@ -225,10 +226,275 @@ class EditPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8.0),
+              const Text(
+                'Спецификации',
+                style: TextStyle(fontSize: 22.0),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddSpecProdAlertDialog(),
+                    );
+                  },
+                  child: const Text('Добавить спецификацию'),
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => DeleteSpecProdAlertDialog(),
+                    );
+                  },
+                  child: const Text('Удалить спецификацию'),
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => EditSpecProdAlertDialog(),
+                    );
+                  },
+                  child: const Text('Изменить спецификацию'),
+                ),
+              ),
+              const SizedBox(height: 8.0),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class EditSpecProdAlertDialog extends StatelessWidget {
+  final TextEditingController idController = TextEditingController();
+
+  final TextEditingController posController = TextEditingController();
+
+  final TextEditingController idPartController = TextEditingController();
+
+  final TextEditingController quantityController = TextEditingController();
+
+  EditSpecProdAlertDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Изменить спецификацию'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'id продукции',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+              controller: idController,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              'Номер позиции',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+              controller: posController,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              'id входящего изделия',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+                controller: idPartController,
+                keyboardType: TextInputType.number),
+            const SizedBox(height: 8.0),
+            const Text(
+              'Кол-во',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Отмена'),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<SpecProdBloc>().add(
+                  EditSpecProd(
+                    idProd: int.tryParse(idController.text),
+                    positionNumber: int.tryParse(posController.text),
+                    idProdPart: int.tryParse(idPartController.text),
+                    quantity: int.tryParse(quantityController.text),
+                  ),
+                );
+            Navigator.pop(context);
+          },
+          child: const Text('Подтвердить'),
+        ),
+      ],
+    );
+  }
+}
+
+class DeleteSpecProdAlertDialog extends StatelessWidget {
+  DeleteSpecProdAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Удалить спецификацию'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'id продукции',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+              controller: idController,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8.0),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Отмена'),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<SpecProdBloc>().add(
+                  DeleteSpecProd(
+                    idProd: int.tryParse(idController.text),
+                  ),
+                );
+            Navigator.pop(context);
+          },
+          child: const Text('Подтвердить'),
+        ),
+      ],
+    );
+  }
+}
+
+class AddSpecProdAlertDialog extends StatelessWidget {
+  AddSpecProdAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
+
+  final TextEditingController posController = TextEditingController();
+
+  final TextEditingController idPartController = TextEditingController();
+
+  final TextEditingController quantityController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Добавить спецификацию'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'id продукции',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+              controller: idController,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              'Номер позиции',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+              controller: posController,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              'id входящего изделия',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+                controller: idPartController,
+                keyboardType: TextInputType.number),
+            const SizedBox(height: 8.0),
+            const Text(
+              'Кол-во',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Отмена'),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<SpecProdBloc>().add(
+                  AddSpecProd(
+                    idProd: int.tryParse(idController.text),
+                    positionNumber: int.tryParse(posController.text),
+                    idProdPart: int.tryParse(idPartController.text),
+                    quantity: int.tryParse(quantityController.text),
+                  ),
+                );
+            Navigator.pop(context);
+          },
+          child: const Text('Подтвердить'),
+        ),
+      ],
     );
   }
 }

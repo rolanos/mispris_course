@@ -36,6 +36,21 @@ class SpecProdBloc extends Bloc<SpecProdEvent, SpecProdState> {
       }
     });
 
+    on<EditSpecProd>((event, emit) async {
+      try {
+        await DataBaseService().editSpecProd(
+          idProdGeneral: event.idProd,
+          positionNumber: event.positionNumber,
+          newIdProdPart: event.idProdPart,
+          newQuantity: event.quantity,
+        );
+        add(GetAllSpecProds());
+      } catch (e) {
+        emit(SpecProdError(message: e.toString()));
+        add(GetAllSpecProds());
+      }
+    });
+
     on<GetAllSpecProds>((event, emit) async {
       try {
         final res = await DataBaseService().getAllSpecProds();
