@@ -17,6 +17,7 @@ class UnitBloc extends Bloc<UnitEvent, UnitState> {
         add(GetAllUnits());
       } catch (e) {
         emit(UnitError(message: e.toString()));
+        add(GetAllUnits());
       }
     });
 
@@ -28,6 +29,7 @@ class UnitBloc extends Bloc<UnitEvent, UnitState> {
         add(GetAllUnits());
       } catch (e) {
         emit(UnitError(message: e.toString()));
+        add(GetAllUnits());
       }
     });
 
@@ -37,6 +39,7 @@ class UnitBloc extends Bloc<UnitEvent, UnitState> {
         emit(UnitInitial(units: res));
       } catch (e) {
         emit(UnitError(message: e.toString()));
+        add(GetAllUnits());
       }
     });
   }

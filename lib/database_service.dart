@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:mispris_course/entity/spec_prod.dart';
 import 'package:mispris_course/entity/unit.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,7 +11,8 @@ import 'entity/prod.dart';
 enum TableName {
   unit('units'),
   chemClass('chem_class'),
-  prod('prod');
+  prod('prod'),
+  specProd('spec_prod');
 
   const TableName(this.name);
 
@@ -24,6 +26,7 @@ abstract class DatabaseInterface {
   Future<List<ChemClass>> getAllChemClass();
   Future<List<Prod>> getAllProds();
   Future<List<Unit>> getAllUnits();
+  Future<List<SpecProd>> getAllSpecProds();
 
   //UNIT
 
@@ -64,6 +67,12 @@ abstract class DatabaseInterface {
   /// Процедура удаления продукта из таблицы prod
   ///[productId] - product_id
   Future<void> deleteProd(int? productId);
+
+  Future<void> addSpecProd(
+      int idProd, int? positionNumber, int? idProdPart, int? quantity);
+
+  /// Процедура удаления продукта из таблицы spec_prod
+  Future<void> deleteSpecProd(int? id);
 
   //OTHER
 
@@ -130,6 +139,14 @@ class DataBaseService implements DatabaseInterface {
     id_class INTEGER NOT NULL
 );  
 ''');
+    await database.execute('''
+    CREATE TABLE ${TableName.specProd.name} (
+    id_prod INTEGER,
+    position_number INTEGER,
+    id_prod_part INTEGER,
+    quantity INTEGER
+);  
+''');
   }
 
   @override
@@ -137,12 +154,13 @@ class DataBaseService implements DatabaseInterface {
       String? shortName, String? name, int? baseUnits, int? mainClass) async {
     try {
       final database = await db;
-
-      if (!(await containsChemClass(mainClass))) {
-        Exception('Не существует базового класса c id = $mainClass');
+      if (mainClass != null &&
+          !(await containsChemClass(mainClass)) &&
+          mainClass != null) {
+        throw Exception('Не существует базового класса c id = $mainClass');
       }
-      if (!(await containsUnit(baseUnits))) {
-        Exception('Не существует ЕИ с id = $baseUnits');
+      if (baseUnits != null && !(await containsUnit(baseUnits))) {
+        throw Exception('Не существует ЕИ с id = $baseUnits');
       }
       await database.insert(
         TableName.chemClass.name,
@@ -157,9 +175,13 @@ class DataBaseService implements DatabaseInterface {
   @override
   Future<void> addProd(String? shortName, String? name, int? idClass) async {
     try {
+      if (shortName == null && name == null && idClass == null) {
+        throw Exception('Пустая форма');
+      }
+
       final database = await db;
       if (!(await containsChemClass(idClass))) {
-        Exception('Не существует базового класса c id = $idClass');
+        throw Exception('Не существует базового класса c id = $idClass');
       }
       await database.insert(
         TableName.prod.name,
@@ -174,6 +196,9 @@ class DataBaseService implements DatabaseInterface {
   @override
   Future<void> addUnit(String? shortName, String? name, String? code) async {
     try {
+      if (shortName == null && name == null && code == null) {
+        throw Exception('Пустая форма');
+      }
       final database = await db;
       await database.insert(
         TableName.unit.name,
@@ -270,6 +295,34 @@ class DataBaseService implements DatabaseInterface {
         where: 'id_units = ?',
         whereArgs: [unitId],
       );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<List<Prod>> findProdChildren(int? inputIdClass) async {
+    try {
+      final database = await db;
+      if (inputIdClass == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+      if (!(await containsChemClass(inputIdClass))) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+      }
+      final list = await findChildren(inputIdClass);
+      final buffer = await database.query(TableName.chemClass.name,
+          where: 'id_class = ?', whereArgs: [inputIdClass]);
+      list.add(ChemClass.fromJson(buffer.first));
+      var resBuffer = <Prod>[];
+      for (var element in list) {
+        final a = await database.query(TableName.prod.name,
+            where: 'id_class = ?', whereArgs: [element.idClass]);
+        if (a.isNotEmpty) resBuffer.add(Prod.fromJson(a.first));
+      }
+      return resBuffer;
     } catch (e) {
       log(e.toString());
       rethrow;
@@ -436,6 +489,61 @@ class DataBaseService implements DatabaseInterface {
         whereArgs: [id],
       );
       return data.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> addSpecProd(
+      int idProd, int? positionNumber, int? idProdPart, int? quantity) async {
+    try {
+      if (positionNumber == null && idProdPart == null && quantity == null) {
+        throw Exception('Пустая форма');
+      }
+      final database = await db;
+      await database.insert(
+        TableName.specProd.name,
+        {
+          "id_prod": idProd,
+          "position_number": positionNumber,
+          "id_prod_part": idProdPart,
+          "quantity": quantity,
+        },
+      );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteSpecProd(int? id) async {
+    try {
+      if (id == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
+      }
+      final database = await db;
+      await database.delete(
+        TableName.specProd.name,
+        where: 'id_prod = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<SpecProd>> getAllSpecProds() async {
+    try {
+      final database = await db;
+      final data = await database.query(TableName.specProd.name);
+      return List.generate(
+          data.length, (index) => SpecProd.fromJson(data[index]));
     } catch (e) {
       log(e.toString());
       rethrow;

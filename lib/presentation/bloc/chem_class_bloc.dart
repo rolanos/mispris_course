@@ -15,6 +15,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         add(GetAllChemClasses());
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
+        add(GetAllChemClasses());
       }
     });
 
@@ -26,6 +27,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         add(GetAllChemClasses());
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
+        add(GetAllChemClasses());
       }
     });
 
@@ -35,6 +37,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         emit(ChemClassInitial(chems: res));
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
+        add(GetAllChemClasses());
       }
     });
 
@@ -44,6 +47,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         add(GetAllChemClasses());
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
+        add(GetAllChemClasses());
       }
     });
 
@@ -53,6 +57,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         emit(ChemClassInitial(chems: res));
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
+        add(GetAllChemClasses());
       }
     });
 
@@ -62,6 +67,7 @@ class ChemClassBloc extends Bloc<ChemClassEvent, ChemClassState> {
         emit(ChemClassInitial(chems: res));
       } catch (e) {
         emit(ChemClassError(message: e.toString()));
+        add(GetAllChemClasses());
       }
     });
   }

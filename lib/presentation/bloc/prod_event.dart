@@ -19,3 +19,9 @@ class DeleteProd extends ProdEvent {
 }
 
 class GetAllProds extends ProdEvent {}
+
+class FindProdByClass extends ProdEvent {
+  final int? id;
+
+  FindProdByClass({this.id});
+}

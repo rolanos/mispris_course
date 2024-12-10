@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'unit.g.dart';
 
+//EИ
 @JsonSerializable()
 class Unit {
   @JsonKey(name: 'id_units')

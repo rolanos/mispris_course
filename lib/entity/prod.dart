@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'prod.g.dart';
 
+///Продукция
 @JsonSerializable()
 class Prod {
   @JsonKey(name: 'id_prod')

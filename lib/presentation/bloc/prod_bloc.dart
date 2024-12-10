@@ -17,6 +17,7 @@ class ProdBloc extends Bloc<ProdEvent, ProdState> {
         add(GetAllProds());
       } catch (e) {
         emit(ProdError(message: e.toString()));
+        add(GetAllProds());
       }
     });
 
@@ -28,6 +29,7 @@ class ProdBloc extends Bloc<ProdEvent, ProdState> {
         add(GetAllProds());
       } catch (e) {
         emit(ProdError(message: e.toString()));
+        add(GetAllProds());
       }
     });
 
@@ -37,6 +39,17 @@ class ProdBloc extends Bloc<ProdEvent, ProdState> {
         emit(ProdInitial(prods: res));
       } catch (e) {
         emit(ProdError(message: e.toString()));
+        add(GetAllProds());
+      }
+    });
+
+    on<FindProdByClass>((event, emit) async {
+      try {
+        final res = await DataBaseService().findProdChildren(event.id);
+        emit(ProdInitial(prods: res));
+      } catch (e) {
+        emit(ProdError(message: e.toString()));
+        add(GetAllProds());
       }
     });
   }
