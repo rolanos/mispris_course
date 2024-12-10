@@ -154,18 +154,12 @@ class DataBaseService implements DatabaseInterface {
       String? shortName, String? name, int? baseUnits, int? mainClass) async {
     try {
       final database = await db;
-
-      if (shortName == null &&
-          name == null &&
-          baseUnits == null &&
-          mainClass == null) {
-        throw Exception('Пустая форма');
-      }
-
-      if (!(await containsChemClass(mainClass)) && mainClass != null) {
+      if (mainClass != null &&
+          !(await containsChemClass(mainClass)) &&
+          mainClass != null) {
         throw Exception('Не существует базового класса c id = $mainClass');
       }
-      if (!(await containsUnit(baseUnits))) {
+      if (baseUnits != null && !(await containsUnit(baseUnits))) {
         throw Exception('Не существует ЕИ с id = $baseUnits');
       }
       await database.insert(
