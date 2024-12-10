@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:mispris_course/entity/spec_prod.dart';
 import 'package:mispris_course/entity/unit.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -10,7 +11,8 @@ import 'entity/prod.dart';
 enum TableName {
   unit('units'),
   chemClass('chem_class'),
-  prod('prod');
+  prod('prod'),
+  specProd('spec_prod');
 
   const TableName(this.name);
 
@@ -24,6 +26,7 @@ abstract class DatabaseInterface {
   Future<List<ChemClass>> getAllChemClass();
   Future<List<Prod>> getAllProds();
   Future<List<Unit>> getAllUnits();
+  Future<List<SpecProd>> getAllSpecProds();
 
   //UNIT
 
@@ -64,6 +67,12 @@ abstract class DatabaseInterface {
   /// Процедура удаления продукта из таблицы prod
   ///[productId] - product_id
   Future<void> deleteProd(int? productId);
+
+  Future<void> addSpecProd(
+      int idProd, int? positionNumber, int? idProdPart, int? quantity);
+
+  /// Процедура удаления продукта из таблицы spec_prod
+  Future<void> deleteSpecProd(int? id);
 
   //OTHER
 
@@ -128,6 +137,14 @@ class DataBaseService implements DatabaseInterface {
     short_name TEXT(50),
     name TEXT(250),
     id_class INTEGER NOT NULL
+);  
+''');
+    await database.execute('''
+    CREATE TABLE ${TableName.specProd.name} (
+    id_prod INTEGER,
+    positionNumber INTEGER,
+    idProdPart INTEGER,
+    quantity INTEGER
 );  
 ''');
   }
@@ -478,6 +495,61 @@ class DataBaseService implements DatabaseInterface {
         whereArgs: [id],
       );
       return data.isNotEmpty;
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> addSpecProd(
+      int idProd, int? positionNumber, int? idProdPart, int? quantity) async {
+    try {
+      if (positionNumber == null && idProdPart == null && quantity == null) {
+        throw Exception('Пустая форма');
+      }
+      final database = await db;
+      await database.insert(
+        TableName.specProd.name,
+        {
+          "id_prod": idProd,
+          "position_number": positionNumber,
+          "id_prod_part": idProdPart,
+          "quantity": quantity,
+        },
+      );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteSpecProd(int? id) async {
+    try {
+      if (id == null) {
+        throw Exception(
+            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
+      }
+      final database = await db;
+      await database.delete(
+        TableName.specProd.name,
+        where: 'id_prod = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<SpecProd>> getAllSpecProds() async {
+    try {
+      final database = await db;
+      final data = await database.query(TableName.specProd.name);
+      return List.generate(
+          data.length, (index) => SpecProd.fromJson(data[index]));
     } catch (e) {
       log(e.toString());
       rethrow;
