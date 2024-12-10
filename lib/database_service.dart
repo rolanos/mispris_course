@@ -142,8 +142,8 @@ class DataBaseService implements DatabaseInterface {
     await database.execute('''
     CREATE TABLE ${TableName.specProd.name} (
     id_prod INTEGER,
-    positionNumber INTEGER,
-    idProdPart INTEGER,
+    position_number INTEGER,
+    id_prod_part INTEGER,
     quantity INTEGER
 );  
 ''');

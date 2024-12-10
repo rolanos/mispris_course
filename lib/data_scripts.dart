@@ -6,6 +6,7 @@ initDbData() async {
   final testVal1 = await DataBaseService().getAllChemClass();
   final testVal2 = await DataBaseService().getAllUnits();
   final testVal3 = await DataBaseService().getAllProds();
+  final testVal4 = await DataBaseService().getAllSpecProds();
   if (testVal1.isEmpty) {
     await fillTestUnits();
     final units = await DataBaseService().getAllUnits();
@@ -20,6 +21,11 @@ initDbData() async {
     await fillTestProd();
     final testProd = await DataBaseService().getAllProds();
     log(testProd.toString());
+  }
+  if (testVal4.isEmpty) {
+    await fillTestSpecProd();
+    final testSpecProd = await DataBaseService().getAllSpecProds();
+    log(testSpecProd.toString());
   }
 }
 
@@ -57,4 +63,10 @@ fillTestProd() async {
   await DataBaseService().addProd(null, 'Трамвай1', 12);
   await DataBaseService().addProd(null, 'Платформа1', 14);
   await DataBaseService().addProd(null, 'Поезд метро1', 11);
+}
+
+fillTestSpecProd() async {
+  await DataBaseService().addSpecProd(3, 1, 1, 1);
+  await DataBaseService().addSpecProd(3, 2, 2, 9);
+  await DataBaseService().addSpecProd(2, 3, 2, 3);
 }
