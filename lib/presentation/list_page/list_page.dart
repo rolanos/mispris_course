@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mispris_course/entity/chem_class.dart';
 import 'package:mispris_course/entity/prod.dart';
+import 'package:mispris_course/entity/spec_prod.dart';
 import 'package:mispris_course/entity/unit.dart';
 import 'package:mispris_course/presentation/bloc/chem_class_bloc.dart';
 import 'package:mispris_course/presentation/bloc/prod_bloc.dart';
@@ -37,6 +38,10 @@ class _ListPageState extends State<ListPage> {
               DropdownMenuItem(
                 value: 2,
                 child: Text('Единицы измерения'),
+              ),
+              DropdownMenuItem(
+                value: 3,
+                child: Text('Спецификации'),
               ),
             ],
             onChanged: (value) {
@@ -85,7 +90,7 @@ class _ListPageState extends State<ListPage> {
                 },
               ),
             ),
-          ] else ...[
+          ] else if (tableId == 2) ...[
             const UnitTableHeader(),
             Expanded(
               child: BlocBuilder<UnitBloc, UnitState>(
@@ -96,6 +101,26 @@ class _ListPageState extends State<ListPage> {
                       itemBuilder: (context, index) {
                         return UnitRow(
                           unit: state.units[index],
+                        );
+                      },
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
+              ),
+            ),
+          ] else ...[
+            const SpecProdTableHeader(),
+            Expanded(
+              child: BlocBuilder<SpecProdBloc, SpecProdState>(
+                builder: (context, state) {
+                  if (state is UnitInitial) {
+                    return ListView.builder(
+                      itemCount: state.units.length,
+                      itemBuilder: (context, index) {
+                        return SpecProdTableRow(
+                          specProd: state.specProds[index],
                         );
                       },
                     );
@@ -385,6 +410,97 @@ class UnitRow extends StatelessWidget {
                   Expanded(
                     flex: 6,
                     child: Text((unit!.code ?? 'Нет').toString()),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+}
+
+class SpecProdTableHeader extends StatelessWidget {
+  const SpecProdTableHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(
+          flex: 4,
+          child: Text('id продукции'),
+        ),
+        SizedBox(
+          width: 10.0,
+        ),
+        Expanded(
+          flex: 2,
+          child: Text('Номер позиции'),
+        ),
+        SizedBox(
+          width: 10.0,
+        ),
+        Expanded(
+          flex: 10,
+          child: Text('Вход. изделие'),
+        ),
+        SizedBox(
+          width: 10.0,
+        ),
+        Expanded(
+          flex: 2,
+          child: Text('Кол-во'),
+        ),
+      ],
+    );
+  }
+}
+
+class SpecProdTableRow extends StatelessWidget {
+  final SpecProd? specProd;
+
+  const SpecProdTableRow({
+    super.key,
+    required this.specProd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: specProd != null
+          ? Container(
+              color: Colors.deepOrange.shade100,
+              height: 30.0,
+              padding: const EdgeInsets.only(
+                bottom: 8.0,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: Text(specProd!.idProd.toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text((specProd!.positionNumber ?? 'Нет').toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 10,
+                    child: Text((specProd!.idProdPart ?? 'Нет').toString()),
+                  ),
+                  const SizedBox(
+                    width: 10.0,
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text((specProd!.quantity ?? 'Нет').toString()),
                   ),
                 ],
               ),
