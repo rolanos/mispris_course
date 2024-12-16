@@ -520,6 +520,9 @@ class DataBaseService implements DatabaseInterface {
         throw Exception(
             'Идентификатора класса не существует в таблице ${TableName.prod.name}');
       }
+      if (idProd == idProdPart) {
+        throw Exception('Цикл при добавлении в таблицу ${TableName.prod.name}');
+      }
       if (positionNumber == null && idProdPart == null && quantity == null) {
         throw Exception('Пустая форма');
       }
