@@ -664,4 +664,19 @@ class DataBaseService implements DatabaseInterface {
 
     return requiredParts;
   }
+
+  Future<void> showSpec(int idProd) async {
+    final specProds = await getAllSpecProds();
+    print('Необходимые комплектующие для изготовления idProd = $idProd:');
+
+    // Фильтруем спецификации для заданного idProd
+    final filteredSpecs = specProds.where((spec) => spec.idProd == idProd);
+
+    // Выводим результат
+    for (final spec in filteredSpecs) {
+      if (spec.idProdPart != null && spec.quantity != null) {
+        print('idProdPart: ${spec.idProdPart}, Quantity: ${spec.quantity}');
+      }
+    }
+  }
 }

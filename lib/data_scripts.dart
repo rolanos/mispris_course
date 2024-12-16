@@ -31,6 +31,10 @@ initDbData() async {
   res.forEach((idProdPart, quantity) {
     print('idProdPart: $idProdPart, Quantity: $quantity');
   });
+
+  print('\n\n');
+
+  await DataBaseService().showSpec(3);
 }
 
 fillTestChemClass() async {
