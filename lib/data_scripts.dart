@@ -27,6 +27,14 @@ initDbData() async {
     final testSpecProd = await DataBaseService().getAllSpecProds();
     log(testSpecProd.toString());
   }
+  final res = await DataBaseService().countClassAmount(3);
+  res.forEach((idProdPart, quantity) {
+    print('idProdPart: $idProdPart, Quantity: $quantity');
+  });
+
+  print('\n\n');
+
+  await DataBaseService().showSpec(3);
 }
 
 fillTestChemClass() async {
@@ -68,5 +76,5 @@ fillTestProd() async {
 fillTestSpecProd() async {
   await DataBaseService().addSpecProd(3, 1, 1, 1);
   await DataBaseService().addSpecProd(3, 2, 2, 9);
-  await DataBaseService().addSpecProd(2, 3, 2, 3);
+  await DataBaseService().addSpecProd(1, 2, 2, 2);
 }

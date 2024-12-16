@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'dart:collection';
 import 'package:mispris_course/entity/spec_prod.dart';
 import 'package:mispris_course/entity/unit.dart';
 import 'package:path/path.dart';
@@ -283,6 +283,16 @@ class DataBaseService implements DatabaseInterface {
         where: 'id_prod = ?',
         whereArgs: [productId],
       );
+      await database.delete(
+        TableName.specProd.name,
+        where: 'id_prod = ?',
+        whereArgs: [productId],
+      );
+      await database.delete(
+        TableName.specProd.name,
+        where: 'id_prod_part = ?',
+        whereArgs: [productId],
+      );
     } catch (e) {
       log(e.toString());
       rethrow;
@@ -510,6 +520,9 @@ class DataBaseService implements DatabaseInterface {
         throw Exception(
             'Идентификатора класса не существует в таблице ${TableName.prod.name}');
       }
+      if (idProd == idProdPart) {
+        throw Exception('Цикл при добавлении в таблицу ${TableName.prod.name}');
+      }
       if (positionNumber == null && idProdPart == null && quantity == null) {
         throw Exception('Пустая форма');
       }
@@ -629,6 +642,54 @@ class DataBaseService implements DatabaseInterface {
     } catch (e) {
       log(e.toString());
       rethrow;
+    }
+  }
+
+  Future<Map<int, int>> countClassAmount(int idProd) async {
+    // Карта для хранения итоговых количеств комплектующих
+    final Map<int, int> requiredParts = {};
+    final specProds = await getAllSpecProds();
+    // Очередь для обхода вложенных компонентов
+    final Queue<int> queue = Queue();
+    queue.add(idProd);
+
+    while (queue.isNotEmpty) {
+      final currentIdProd = queue.removeFirst();
+
+      // Получить все строки спецификации для текущего idProd
+      final currentSpecProds =
+          specProds.where((spec) => spec.idProd == currentIdProd);
+
+      for (final spec in currentSpecProds) {
+        if (spec.idProdPart != null && spec.quantity != null) {
+          // Добавить количество в итоговую карту
+          requiredParts.update(
+            spec.idProdPart!,
+            (existingQuantity) => existingQuantity + spec.quantity!,
+            ifAbsent: () => spec.quantity!,
+          );
+
+          // Добавить компонент в очередь для проверки его комплектующих
+          queue.add(spec.idProdPart!);
+        }
+      }
+    }
+
+    return requiredParts;
+  }
+
+  Future<void> showSpec(int idProd) async {
+    final specProds = await getAllSpecProds();
+    print('Необходимые комплектующие для изготовления idProd = $idProd:');
+
+    // Фильтруем спецификации для заданного idProd
+    final filteredSpecs = specProds.where((spec) => spec.idProd == idProd);
+
+    // Выводим результат
+    for (final spec in filteredSpecs) {
+      if (spec.idProdPart != null && spec.quantity != null) {
+        print('idProdPart: ${spec.idProdPart}, Quantity: ${spec.quantity}');
+      }
     }
   }
 }
