@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'dart:collection';
 import 'package:mispris_course/entity/spec_prod.dart';
 import 'package:mispris_course/entity/unit.dart';
 import 'package:path/path.dart';
@@ -630,5 +630,38 @@ class DataBaseService implements DatabaseInterface {
       log(e.toString());
       rethrow;
     }
+  }
+
+  Future<Map<int, int>> countClassAmount(int idProd) async {
+    // Карта для хранения итоговых количеств комплектующих
+    final Map<int, int> requiredParts = {};
+    final specProds = await getAllSpecProds();
+    // Очередь для обхода вложенных компонентов
+    final Queue<int> queue = Queue();
+    queue.add(idProd);
+
+    while (queue.isNotEmpty) {
+      final currentIdProd = queue.removeFirst();
+
+      // Получить все строки спецификации для текущего idProd
+      final currentSpecProds =
+          specProds.where((spec) => spec.idProd == currentIdProd);
+
+      for (final spec in currentSpecProds) {
+        if (spec.idProdPart != null && spec.quantity != null) {
+          // Добавить количество в итоговую карту
+          requiredParts.update(
+            spec.idProdPart!,
+            (existingQuantity) => existingQuantity + spec.quantity!,
+            ifAbsent: () => spec.quantity!,
+          );
+
+          // Добавить компонент в очередь для проверки его комплектующих
+          queue.add(spec.idProdPart!);
+        }
+      }
+    }
+
+    return requiredParts;
   }
 }
