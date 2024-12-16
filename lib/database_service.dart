@@ -283,6 +283,16 @@ class DataBaseService implements DatabaseInterface {
         where: 'id_prod = ?',
         whereArgs: [productId],
       );
+      await database.delete(
+        TableName.specProd.name,
+        where: 'id_prod = ?',
+        whereArgs: [productId],
+      );
+      await database.delete(
+        TableName.specProd.name,
+        where: 'id_prod_part = ?',
+        whereArgs: [productId],
+      );
     } catch (e) {
       log(e.toString());
       rethrow;
