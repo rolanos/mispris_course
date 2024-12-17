@@ -293,10 +293,138 @@ class EditPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ShowSpecProdAlertDialog(),
+                    );
+                  },
+                  child: const Text('Показать спецификацию'),
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              SizedBox(
+                width: MediaQuery.of(context).size.width - 16.0,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.deepOrange.shade100,
+                    shape: const BeveledRectangleBorder(),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => CountClassAmountAlertDialog(),
+                    );
+                  },
+                  child: const Text('Рассчитать расход'),
+                ),
+              ),
+              const SizedBox(height: 8.0),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class CountClassAmountAlertDialog extends StatelessWidget {
+  CountClassAmountAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Рассчитать расход'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'id класса',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Отмена'),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<SpecProdBloc>().add(CountClassAmount(
+                  idProd: int.parse(
+                    idController.text,
+                  ),
+                ));
+            Navigator.pop(context);
+          },
+          child: const Text('Подтвердить'),
+        ),
+      ],
+    );
+  }
+}
+
+class ShowSpecProdAlertDialog extends StatelessWidget {
+  ShowSpecProdAlertDialog({super.key});
+
+  final TextEditingController idController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Показать спецификацию'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'id класса',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            TextField(
+                controller: idController, keyboardType: TextInputType.number),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Отмена'),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<SpecProdBloc>().add(
+                  idController.text.isNotEmpty
+                      ? ShowSpec(
+                          idProd: int.parse(
+                            idController.text,
+                          ),
+                        )
+                      : GetAllSpecProds(),
+                );
+            Navigator.pop(context);
+          },
+          child: const Text('Подтвердить'),
+        ),
+      ],
     );
   }
 }

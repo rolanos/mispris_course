@@ -580,8 +580,8 @@ class DataBaseService implements DatabaseInterface {
       // Проверяем, существует ли строка спецификации
       final existingSpec = await database.query(
         TableName.specProd.name,
-        columns: ['id_prod_general', 'position_number'],
-        where: 'id_prod_general = ? AND position_number = ?',
+        columns: ['id_prod', 'position_number'],
+        where: 'id_prod = ? AND position_number = ?',
         whereArgs: [idProdGeneral, positionNumber],
       );
 
@@ -597,15 +597,15 @@ class DataBaseService implements DatabaseInterface {
       // Проверка на циклы
       final isCycle = await database.rawQuery('''
       WITH RECURSIVE check_cycle(id_general, id_part) AS (
-        SELECT id_prod_general, id_prod_part
+        SELECT id_prod, id_prod_part
         FROM ${TableName.specProd.name}
-        WHERE id_prod_general = ?
+        WHERE id_prod = ?
 
         UNION
 
-        SELECT sp.id_prod_general, sp.id_prod_part
+        SELECT sp.id_prod, sp.id_prod_part
         FROM ${TableName.specProd.name} sp
-        JOIN check_cycle cc ON sp.id_prod_general = cc.id_part
+        JOIN check_cycle cc ON sp.id_prod = cc.id_part
       )
       SELECT COUNT(*) AS cycle_count
       FROM check_cycle
@@ -624,7 +624,7 @@ class DataBaseService implements DatabaseInterface {
           'id_prod_part': newIdProdPart,
           'quantity': newQuantity,
         },
-        where: 'id_prod_general = ? AND position_number = ?',
+        where: 'id_prod = ? AND position_number = ?',
         whereArgs: [idProdGeneral, positionNumber],
       );
     } catch (e) {
