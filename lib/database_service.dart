@@ -679,18 +679,35 @@ class DataBaseService implements DatabaseInterface {
     return requiredParts;
   }
 
-  Future<void> showSpec(int idProd) async {
+  /// Метод для поиска всех элементов, связанных с idProd, в виде списка
+  Future<List<SpecProd>> showSpec(int idProd) async {
+    // Для имитации асинхронной загрузки данных из какого-либо источника
     final specProds = await getAllSpecProds();
-    print('Необходимые комплектующие для изготовления idProd = $idProd:');
 
-    // Фильтруем спецификации для заданного idProd
-    final filteredSpecs = specProds.where((spec) => spec.idProd == idProd);
+    // Результирующий список всех элементов, связанных с idProd
+    List<SpecProd> result = [];
 
-    // Выводим результат
-    for (final spec in filteredSpecs) {
-      if (spec.idProdPart != null && spec.quantity != null) {
-        print('idProdPart: ${spec.idProdPart}, Quantity: ${spec.quantity}');
+    // Очередь для обработки всех найденных idProd
+    final Queue<int> queue = Queue();
+    queue.add(idProd);
+
+    // Пока есть элементы в очереди, ищем все связанные с ними компоненты
+    while (queue.isNotEmpty) {
+      final currentIdProd = queue.removeFirst();
+
+      // Фильтруем все спецификации для текущего idProd
+      final currentSpecProds =
+          specProds.where((spec) => spec.idProd == currentIdProd);
+
+      for (final spec in currentSpecProds) {
+        if (spec.idProdPart != null) {
+          result.add(spec); // Добавляем найденную спецификацию в результат
+          queue.add(spec
+              .idProdPart!); // Добавляем idProdPart в очередь для поиска связанных компонентов
+        }
       }
     }
+
+    return result;
   }
 }

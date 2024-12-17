@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:mispris_course/entity/spec_prod.dart';
@@ -55,6 +57,35 @@ class SpecProdBloc extends Bloc<SpecProdEvent, SpecProdState> {
       try {
         final res = await DataBaseService().getAllSpecProds();
         emit(SpecProdInitial(specProds: res));
+      } catch (e) {
+        emit(SpecProdError(message: e.toString()));
+        add(GetAllSpecProds());
+      }
+    });
+    on<ShowSpec>((event, emit) async {
+      try {
+        final res = await DataBaseService().showSpec(event.idProd);
+        emit(SpecProdInitial(specProds: res));
+      } catch (e) {
+        emit(SpecProdError(message: e.toString()));
+        add(GetAllSpecProds());
+      }
+    });
+    on<CountClassAmount>((event, emit) async {
+      try {
+        final specProds = await DataBaseService().getAllSpecProds();
+        final res = await DataBaseService().countClassAmount(event.idProd);
+        final prods = await DataBaseService().getAllProds();
+        String message = '';
+        for (final spec in res.entries) {
+          final contains =
+              prods.where((elem) => elem.idProd == spec.key).toList();
+          if (contains.isNotEmpty) {
+            message += '${contains.first.name}: ${spec.value}\n';
+          }
+        }
+        emit(
+            SpecProdInitialWithMessage(specProds: specProds, message: message));
       } catch (e) {
         emit(SpecProdError(message: e.toString()));
         add(GetAllSpecProds());

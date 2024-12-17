@@ -43,6 +43,10 @@ class EditPage extends StatelessWidget {
               SnackBarCustom(context: context, message: state.message)
                   .showSnackBar();
             }
+            if (state is SpecProdInitialWithMessage) {
+              SnackBarCustom(context: context, message: state.message)
+                  .showSnackBar();
+            }
           },
         ),
       ],

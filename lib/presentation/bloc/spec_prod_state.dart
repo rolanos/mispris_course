@@ -9,6 +9,15 @@ class SpecProdInitial extends SpecProdState {
   SpecProdInitial({required this.specProds});
 }
 
+class SpecProdInitialWithMessage extends SpecProdInitial {
+  final String message;
+
+  SpecProdInitialWithMessage({
+    required super.specProds,
+    required this.message,
+  });
+}
+
 class SpecProdError extends SpecProdState {
   final String message;
 
