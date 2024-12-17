@@ -36,7 +36,15 @@ class EditPage extends StatelessWidget {
                   .showSnackBar();
             }
           },
-        )
+        ),
+        BlocListener<SpecProdBloc, SpecProdState>(
+          listener: (context, state) {
+            if (state is SpecProdError) {
+              SnackBarCustom(context: context, message: state.message)
+                  .showSnackBar();
+            }
+          },
+        ),
       ],
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0.0),
