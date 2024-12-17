@@ -39,3 +39,15 @@ class EditSpecProd extends SpecProdEvent {
 }
 
 class GetAllSpecProds extends SpecProdEvent {}
+
+class CountClassAmount extends SpecProdEvent {
+  final int idProd;
+
+  CountClassAmount({required this.idProd});
+}
+
+class ShowSpec extends SpecProdEvent {
+  final int idProd;
+
+  ShowSpec({required this.idProd});
+}
