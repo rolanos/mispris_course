@@ -1,713 +1,640 @@
-import 'dart:developer';
-import 'dart:collection';
-import 'package:flutter/material.dart';
-import 'package:mispris_course/entity/spec_prod.dart';
-import 'package:mispris_course/entity/unit.dart';
-import 'package:path/path.dart';
+// lib/services/database_service.dart
+import 'dart:async';
 import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
-import 'entity/chem_class.dart';
-import 'entity/prod.dart';
+import 'entity/entity.dart';
 
-enum TableName {
-  unit('units'),
-  chemClass('chem_class'),
-  prod('prod'),
-  specProd('spec_prod');
+class DatabaseService {
+  DatabaseService._privateConstructor();
+  static final DatabaseService instance = DatabaseService._privateConstructor();
 
-  const TableName(this.name);
+  static Database? _db;
+  Future<Database> get db async => _db ??= await _initDB();
 
-  final String name;
-}
+  static const _dbName = "app_database.db";
+  static const _dbVersion = 1;
 
-abstract class DatabaseInterface {
-  //SELECT *
+  Future<Database> _initDB() async {
+    final databasesPath = await getDatabasesPath();
+    final path = join(databasesPath, _dbName);
 
-  ///Получение всех
-  Future<List<ChemClass>> getAllChemClass();
-  Future<List<Prod>> getAllProds();
-  Future<List<Unit>> getAllUnits();
-  Future<List<SpecProd>> getAllSpecProds();
-
-  //UNIT
-
-  ///[shortName] - short_name_param
-  ///[name] - name_param
-  ///[code] - code_param
-  Future<void> addUnit(
-      String? shortNameParam, String? nameParam, String? codeParam);
-
-  ///[unitId] - unit_id
-  Future<void> deleteUnit(int? unitId);
-
-  //ChemClass
-
-  ///[shortName] - short_name_param
-  ///[name] - name_param
-  ///[baseUnits] - base_units_param
-  ///[mainClass] - main_class_param
-  Future<void> addChemClass(
-      String? shortName, String? name, int? baseUnits, int? mainClass);
-
-  ///[classId] - class_id
-  Future<void> deleteChemClass(int? classId);
-
-  ///Процедура изменения родителя у класса изделия
-  ///[classId] - class_id
-  ///[newParentId] - new_parent_id
-  Future<void> changeParent(int? classId, int? newParentId);
-
-  //PROD
-
-  ///Процедура добавления нового продукта в таблицу prod
-  ///[shortName] - short_name_param
-  ///[name] - name_param
-  ///[idClass] - id_class_param
-  Future<void> addProd(String? shortName, String? name, int? idClass);
-
-  /// Процедура удаления продукта из таблицы prod
-  ///[productId] - product_id
-  Future<void> deleteProd(int? productId);
-
-  Future<void> addSpecProd(
-      int idProd, int? positionNumber, int? idProdPart, int? quantity);
-
-  Future<void> editSpecProd({
-    required int idProdGeneral,
-    required int positionNumber,
-    required int newIdProdPart,
-    required int newQuantity,
-  });
-
-  /// Процедура удаления продукта из таблицы spec_prod
-  Future<void> deleteSpecProd(int? id);
-
-  //OTHER
-
-  ///Процедура нахождения родителей у класса изделия
-  ///[inElementId] - in_element_id
-  Future<List<ChemClass>> findParents(int? inElementId);
-
-  ///Процедура нахождения потомков у класса изделия
-  ///[inputIdClass] - input_id_class
-  Future<List<ChemClass>> findChildren(int? inputIdClass);
-}
-
-class DataBaseService implements DatabaseInterface {
-  Database? _database;
-
-  Future<Database> get db async {
-    if (_database != null) {
-      return _database!;
-    }
-    _database = await _init();
-    return _database!;
-  }
-
-  Future<String> get fullPath async {
-    const name = 'mispris.db';
-    final path = await getDatabasesPath();
-    return join(path, name);
-  }
-
-  Future<Database> _init() async {
-    final path = await fullPath;
-    var database = await openDatabase(
+    return await openDatabase(
       path,
-      version: 1,
-      onCreate: create,
-      singleInstance: true,
+      version: _dbVersion,
+      onCreate: _onCreate,
+      onConfigure: (db) async {
+        // включаем foreign keys
+        await db.execute('PRAGMA foreign_keys = ON;');
+      },
     );
-    return database;
   }
 
-  Future<void> create(Database database, int version) async {
-    await database.execute('''
-    CREATE TABLE ${TableName.unit.name} (
-      id_units INTEGER PRIMARY KEY,
-      short_name TEXT(10),
-      name TEXT(50),
-      code TEXT(15)
-    );
-''');
-    await database.execute('''
-    CREATE TABLE ${TableName.chemClass.name} (
-    id_class INTEGER PRIMARY KEY,
-    short_name TEXT(50),
-    name TEXT(200),
-    base_units INTEGER,
-    main_class INTEGER
-    );  
-''');
-    await database.execute('''
-    CREATE TABLE ${TableName.prod.name} (
-    id_prod INTEGER PRIMARY KEY,
-    short_name TEXT(50),
-    name TEXT(250),
-    id_class INTEGER NOT NULL
-);  
-''');
-    await database.execute('''
-    CREATE TABLE ${TableName.specProd.name} (
-    id_prod INTEGER,
-    position_number INTEGER,
-    id_prod_part INTEGER,
-    quantity INTEGER
-);  
-''');
-  }
-
-  @override
-  Future<void> addChemClass(
-      String? shortName, String? name, int? baseUnits, int? mainClass) async {
-    try {
-      final database = await db;
-      if (mainClass != null &&
-          !(await containsChemClass(mainClass)) &&
-          mainClass != null) {
-        throw Exception('Не существует базового класса c id = $mainClass');
-      }
-      if (baseUnits != null && !(await containsUnit(baseUnits))) {
-        throw Exception('Не существует ЕИ с id = $baseUnits');
-      }
-      await database.insert(
-        TableName.chemClass.name,
-        ChemClass.toMapAdd(shortName, name, baseUnits, mainClass),
+  Future _onCreate(Database db, int version) async {
+    // Создание таблиц (адаптация под SQLite)
+    await db.execute('''
+      CREATE TABLE EI (
+        ID_EI INTEGER PRIMARY KEY AUTOINCREMENT,
+        CODE TEXT,
+        SHORT_NAME TEXT,
+        NAME TEXT
       );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+    ''');
 
-  @override
-  Future<void> addProd(String? shortName, String? name, int? idClass) async {
-    try {
-      if (shortName == null && name == null && idClass == null) {
-        throw Exception('Пустая форма');
-      }
-
-      final database = await db;
-      if (!(await containsChemClass(idClass))) {
-        throw Exception('Не существует базового класса c id = $idClass');
-      }
-      await database.insert(
-        TableName.prod.name,
-        Prod.toMapAdd(shortName, name, idClass),
+    await db.execute('''
+      CREATE TABLE TYPE_STATE (
+        ID_STATE INTEGER PRIMARY KEY AUTOINCREMENT,
+        NAME TEXT,
+        SH_NAME TEXT
       );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+    ''');
 
-  @override
-  Future<void> addUnit(String? shortName, String? name, String? code) async {
-    try {
-      if (shortName == null && name == null && code == null) {
-        throw Exception('Пустая форма');
-      }
-      final database = await db;
-      await database.insert(
-        TableName.unit.name,
-        Unit.toMapAdd(shortName, name, code),
+    await db.execute('''
+      CREATE TABLE TYPE_DECISION (
+        ID_DEC INTEGER PRIMARY KEY AUTOINCREMENT,
+        NAME TEXT,
+        SH_NAME TEXT
       );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+    ''');
 
-  @override
-  Future<void> changeParent(int? classId, int? newParentId) async {
-    try {
-      final database = await db;
-      final containsChild = await containsChemClass(classId);
-      final containsParent = await containsChemClass(classId);
-      if (!containsChild) {
-        throw Exception(
-            'В таблице ${TableName.chemClass.name} нет такого изделия');
-      }
-      if (!containsParent) {
-        throw Exception(
-            'В таблице ${TableName.chemClass.name} нет такого родительского изделия');
-      }
-
-      final data = await database.query(TableName.chemClass.name,
-          where: 'id_class=?', whereArgs: [classId]);
-
-      if (data.isNotEmpty) {
-        final buffer = ChemClass.fromJson(data.first);
-        final result = buffer.copyWith(mainClass: newParentId);
-        await database.update(
-          TableName.chemClass.name,
-          result.toJson(),
-          where: 'id_class=?',
-          whereArgs: [classId],
-        );
-      }
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> deleteChemClass(int? classId) async {
-    try {
-      if (classId == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
-      }
-      final database = await db;
-      await database.delete(
-        TableName.chemClass.name,
-        where: 'id_class = ?',
-        whereArgs: [classId],
+    await db.execute('''
+      CREATE TABLE CHEM_CLASS (
+        ID_CLASS INTEGER PRIMARY KEY AUTOINCREMENT,
+        NAME TEXT,
+        SHORT_NAME TEXT,
+        BASE_EI INTEGER,
+        MAIN_CLASS INTEGER,
+        FOREIGN KEY (BASE_EI) REFERENCES EI(ID_EI),
+        FOREIGN KEY (MAIN_CLASS) REFERENCES CHEM_CLASS(ID_CLASS)
       );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+    ''');
 
-  @override
-  Future<void> deleteProd(int? productId) async {
-    try {
-      if (productId == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
-      }
-      final database = await db;
-      await database.delete(
-        TableName.prod.name,
-        where: 'id_prod = ?',
-        whereArgs: [productId],
+    await db.execute('''
+      CREATE TABLE GR_PERSON (
+        ID_GR INTEGER PRIMARY KEY AUTOINCREMENT,
+        NAME TEXT
       );
-      await database.delete(
-        TableName.specProd.name,
-        where: 'id_prod = ?',
-        whereArgs: [productId],
+    ''');
+
+    await db.execute('''
+      CREATE TABLE PERSON (
+        ID_PER INTEGER PRIMARY KEY AUTOINCREMENT,
+        FIO TEXT
       );
-      await database.delete(
-        TableName.specProd.name,
-        where: 'id_prod_part = ?',
-        whereArgs: [productId],
+    ''');
+
+    await db.execute('''
+      CREATE TABLE CONSIST_GR (
+        ID_GR INTEGER NOT NULL,
+        ID_PER INTEGER NOT NULL,
+        PRIMARY KEY (ID_GR, ID_PER),
+        FOREIGN KEY (ID_GR) REFERENCES GR_PERSON(ID_GR),
+        FOREIGN KEY (ID_PER) REFERENCES PERSON(ID_PER)
       );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+    ''');
 
-  @override
-  Future<void> deleteUnit(int? unitId) async {
-    try {
-      if (unitId == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.unit.name}');
-      }
-      final database = await db;
-      await database.delete(
-        TableName.unit.name,
-        where: 'id_units = ?',
-        whereArgs: [unitId],
+    await db.execute('''
+      CREATE TABLE TYPE_PROCESS (
+        ID_TYPE_PROC INTEGER PRIMARY KEY AUTOINCREMENT,
+        NAME TEXT,
+        SH_NAME TEXT,
+        ID_CLASS INTEGER NOT NULL,
+        FOREIGN KEY (ID_CLASS) REFERENCES CHEM_CLASS(ID_CLASS)
       );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+    ''');
+
+    await db.execute('''
+      CREATE TABLE STATE (
+        ID_TYPE_PR INTEGER NOT NULL,
+        ID_STATE INTEGER NOT NULL,
+        FLAG_BEG INTEGER NOT NULL,
+        PRIMARY KEY (ID_TYPE_PR, ID_STATE),
+        FOREIGN KEY (ID_TYPE_PR) REFERENCES TYPE_PROCESS(ID_TYPE_PROC),
+        FOREIGN KEY (ID_STATE) REFERENCES TYPE_STATE(ID_STATE)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE DECISION (
+        ID_TYPE_PR INTEGER NOT NULL,
+        ID_STATE INTEGER NOT NULL,
+        ID_DEC INTEGER NOT NULL,
+        PRIMARY KEY (ID_TYPE_PR, ID_STATE, ID_DEC),
+        FOREIGN KEY (ID_DEC) REFERENCES TYPE_DECISION(ID_DEC),
+        FOREIGN KEY (ID_TYPE_PR, ID_STATE) REFERENCES STATE(ID_TYPE_PR, ID_STATE)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ACCESS_STATE (
+        ID_TYPE_PR INTEGER NOT NULL,
+        ID_GR INTEGER NOT NULL,
+        ID_STATE INTEGER NOT NULL,
+        PRIMARY KEY (ID_TYPE_PR, ID_GR, ID_STATE),
+        FOREIGN KEY (ID_GR) REFERENCES GR_PERSON(ID_GR),
+        FOREIGN KEY (ID_TYPE_PR, ID_STATE) REFERENCES STATE(ID_TYPE_PR, ID_STATE)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE PREDICAT (
+        ID_PRED INTEGER PRIMARY KEY AUTOINCREMENT,
+        ID_STATE INTEGER NOT NULL,
+        ID_DEC INTEGER NOT NULL,
+        YES_PAR INTEGER,
+        FOREIGN KEY (ID_STATE) REFERENCES TYPE_STATE(ID_STATE),
+        FOREIGN KEY (ID_DEC) REFERENCES TYPE_DECISION(ID_DEC)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE FORMULA (
+        ID_F INTEGER NOT NULL,
+        NUM_DIS INTEGER NOT NULL,
+        ID_PRED INTEGER NOT NULL,
+        NUM_CON INTEGER NOT NULL,
+        PRIMARY KEY (ID_F, NUM_DIS, NUM_CON),
+        FOREIGN KEY (ID_PRED) REFERENCES PREDICAT(ID_PRED)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE PROCESS (
+        ID_PROCESS INTEGER PRIMARY KEY AUTOINCREMENT,
+        NAME TEXT,
+        SH_NAME TEXT,
+        TYPE_PR INTEGER,
+        ID_CLASS INTEGER,
+        FOREIGN KEY (TYPE_PR) REFERENCES TYPE_PROCESS(ID_TYPE_PROC),
+        FOREIGN KEY (ID_CLASS) REFERENCES CHEM_CLASS(ID_CLASS)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE TRAJECTORY (
+        ID_PROCESS INTEGER NOT NULL,
+        NUM_POS INTEGER NOT NULL,
+        ID_STATE INTEGER NOT NULL,
+        ID_DEC INTEGER NOT NULL,
+        ID_PER INTEGER NOT NULL,
+        D_TIME TEXT DEFAULT (datetime('now')),
+        PRIMARY KEY (ID_PROCESS, NUM_POS),
+        FOREIGN KEY (ID_PROCESS) REFERENCES PROCESS(ID_PROCESS),
+        FOREIGN KEY (ID_STATE) REFERENCES TYPE_STATE(ID_STATE),
+        FOREIGN KEY (ID_DEC) REFERENCES TYPE_DECISION(ID_DEC),
+        FOREIGN KEY (ID_PER) REFERENCES PERSON(ID_PER)
+      );
+    ''');
   }
 
-  Future<List<Prod>> findProdChildren(int? inputIdClass) async {
-    try {
-      final database = await db;
-      if (inputIdClass == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
-      }
-      if (!(await containsChemClass(inputIdClass))) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
-      }
-      final list = await findChildren(inputIdClass);
-      final buffer = await database.query(TableName.chemClass.name,
-          where: 'id_class = ?', whereArgs: [inputIdClass]);
-      list.add(ChemClass.fromJson(buffer.first));
-      var resBuffer = <Prod>[];
-      for (var element in list) {
-        final a = await database.query(TableName.prod.name,
-            where: 'id_class = ?', whereArgs: [element.idClass]);
-        if (a.isNotEmpty) resBuffer.add(Prod.fromJson(a.first));
-      }
-      return resBuffer;
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future close() async {
+    final database = await db;
+    await database.close();
+    _db = null;
   }
 
-  @override
-  Future<List<ChemClass>> findChildren(int? inputIdClass) async {
-    try {
-      if (inputIdClass == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
-      }
-      List<ChemClass> classes = await getAllChemClass();
-      return _findAllChildren(classes, inputIdClass);
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
+  // ----------------------------
+  // seedData: добавляет стартовые записи если таблицы пусты
+  // ----------------------------
+  Future<void> seedData() async {
+    final database = await db;
 
-  List<ChemClass> _findAllChildren(List<ChemClass> classes, int idClass) {
-    List<ChemClass> children = [];
-
-    ChemClass currentClass =
-        classes.firstWhere((element) => element.idClass == idClass);
-
-    if (currentClass != null) {
-      List<ChemClass> potentialChildren =
-          classes.where((element) => element.mainClass == idClass).toList();
-
-      for (ChemClass child in potentialChildren) {
-        children.add(child);
-        children.addAll(_findAllChildren(classes, child.idClass));
-      }
-    }
-
-    return children;
-  }
-
-  @override
-  Future<List<ChemClass>> findParents(int? inElementId) async {
-    try {
-      List<ChemClass> classes = await getAllChemClass();
-      List<ChemClass> parents = [];
-      if (inElementId == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+    await database.transaction((txn) async {
+      // helper: check if table empty
+      Future<bool> isEmpty(String table) async {
+        final res = Sqflite.firstIntValue(
+            await txn.rawQuery('SELECT COUNT(1) FROM $table'));
+        return (res ?? 0) == 0;
       }
 
-      if (classes
-          .where((element) => element.idClass == inElementId)
-          .isNotEmpty) {
-        ChemClass? currentClass =
-            classes.firstWhere((element) => element.idClass == inElementId);
+      // EI
+      if (await isEmpty('EI')) {
+        await txn.insert('EI',
+            {'ID_EI': 1, 'CODE': 'PCS', 'SHORT_NAME': 'шт', 'NAME': 'Штуки'});
+        await txn.insert('EI', {
+          'ID_EI': 2,
+          'CODE': 'KG',
+          'SHORT_NAME': 'кг',
+          'NAME': 'Килограммы'
+        });
+        await txn.insert('EI', {
+          'ID_EI': 3,
+          'CODE': 'SET',
+          'SHORT_NAME': 'компл',
+          'NAME': 'Комплект'
+        });
+      }
 
-        while (currentClass != null) {
-          if (currentClass.mainClass != null) {
-            if (classes.indexWhere(
-                    (element) => element.idClass == currentClass!.mainClass) !=
-                -1) {
-              currentClass = classes.firstWhere(
-                  (element) => element.idClass == currentClass!.mainClass);
-              parents.add(currentClass);
-            }
-          } else {
-            currentClass = null;
+      // TYPE_DECISION: insert only if empty
+      if (await isEmpty('TYPE_DECISION')) {
+        final decisions = [
+          ['Замечания КБ', 'KB!'],
+          ['Согласовано в КБ', 'KB+'],
+          ['Замечания ТО', 'TO!'],
+          ['Согласовано в ТО', 'TO+'],
+          ['Продукция не производится', 'NP'],
+          ['Поставщик найден', 'FND'],
+          ['Отказ поставщика', 'REJ'],
+          ['Согласовано с поставщиком', 'OKP'],
+          ['Замечания руководства', 'RH!'],
+          ['Разрешено использовать', 'USE'],
+          ['Запрет на использование', 'BAN'],
+          ['Подтверждение запрета', 'CBAN'],
+          ['Подтверждение разрешения', 'CUSE'],
+          ['Отправлено на доработку', 'REDO'],
+          ['Переотправлено ТО', 'RETO'],
+          ['Завершить процесс', 'END'],
+        ];
+        for (var d in decisions) {
+          await txn.insert('TYPE_DECISION', {'NAME': d[0], 'SH_NAME': d[1]});
+        }
+      }
+
+      // TYPE_STATE
+      if (await isEmpty('TYPE_STATE')) {
+        final states = [
+          ['Объявление нового комплектующего', '01'],
+          ['Редактирование параметров', '02'],
+          ['Согласование в КБ', '03'],
+          ['Согласование ТО', '04'],
+          ['Определение возможных поставщиков', '05'],
+          ['Выставление требований поставщику', '06'],
+          ['Разрешение на использование', '07'],
+          ['Запрещено использовать', '08'],
+        ];
+        for (var s in states) {
+          await txn.insert('TYPE_STATE', {'NAME': s[0], 'SH_NAME': s[1]});
+        }
+      }
+
+      // GR_PERSON
+      if (await isEmpty('GR_PERSON')) {
+        final groups = [
+          'Конструкторы',
+          'Технологи',
+          'Поставщики',
+          'Руководство'
+        ];
+        for (var g in groups) {
+          await txn.insert('GR_PERSON', {'NAME': g});
+        }
+      }
+
+      // PERSON
+      if (await isEmpty('PERSON')) {
+        final people = [
+          'Будило Е.А.',
+          'Костенко И.А.',
+          'Зашляхтин А.А.',
+          'Михайлов М.М.'
+        ];
+        for (var p in people) {
+          await txn.insert('PERSON', {'FIO': p});
+        }
+      }
+
+      // CONSIST_GR
+      if (await isEmpty('CONSIST_GR')) {
+        // note: IDs correspond to inserted rows (auto increment starts from 1)
+        await txn.insert('CONSIST_GR', {'ID_GR': 1, 'ID_PER': 1});
+        await txn.insert('CONSIST_GR', {'ID_GR': 1, 'ID_PER': 2});
+        await txn.insert('CONSIST_GR', {'ID_GR': 2, 'ID_PER': 3});
+        await txn.insert('CONSIST_GR', {'ID_GR': 4, 'ID_PER': 4});
+      }
+
+      // CHEM_CLASS
+      if (await isEmpty('CHEM_CLASS')) {
+        await txn.insert('CHEM_CLASS', {
+          'ID_CLASS': 1,
+          'NAME': 'Комплектующее изделие',
+          'SHORT_NAME': 'CMP',
+          'BASE_EI': 1,
+          'MAIN_CLASS': null
+        });
+      }
+
+      // TYPE_PROCESS
+      if (await isEmpty('TYPE_PROCESS')) {
+        await txn.insert('TYPE_PROCESS', {
+          'NAME': 'Включение нового комплектующего',
+          'SH_NAME': 'NEWCMP',
+          'ID_CLASS': 1
+        });
+      }
+
+      // STATE (для TYPE_PR = 1) — добавляем записи 1..8
+      if (await isEmpty('STATE')) {
+        // assuming TYPE_PROCESS with id 1 exists
+        for (var idState = 1; idState <= 8; idState++) {
+          final flagBeg = (idState == 1) ? 1 : 0;
+          await txn.insert('STATE', {
+            'ID_TYPE_PR': 1,
+            'ID_STATE': idState,
+            'FLAG_BEG': flagBeg,
+          });
+        }
+      }
+
+      // DECISION (добавляем разрешённые переходы)
+      if (await isEmpty('DECISION')) {
+        final decisions = [
+          [1, 1, 4],
+          [1, 2, 4],
+          [1, 3, 5],
+          [1, 3, 8],
+          [1, 4, 6],
+          [1, 4, 9],
+          [1, 5, 7],
+          [1, 5, 10],
+          [1, 6, 11],
+          [1, 6, 12],
+          [1, 7, 16],
+          [1, 7, 14],
+          [1, 8, 15],
+          [1, 8, 13],
+        ];
+        for (var d in decisions) {
+          await txn.insert('DECISION', {
+            'ID_TYPE_PR': d[0],
+            'ID_STATE': d[1],
+            'ID_DEC': d[2],
+          });
+        }
+      }
+
+      // ACCESS_STATE
+      if (await isEmpty('ACCESS_STATE')) {
+        final access = [
+          [1, 1, 1],
+          [1, 2, 1],
+          [1, 3, 1],
+          [1, 3, 3],
+          [1, 4, 2],
+          [1, 5, 4],
+          [1, 6, 4],
+          [1, 7, 4],
+          [1, 8, 4],
+        ];
+        for (var a in access) {
+          await txn.insert('ACCESS_STATE', {
+            'ID_TYPE_PR': a[0],
+            'ID_GR': a[
+                2], // note: original order in pg was (pIdTypePr, pIdState, pIdGr) but insertion here follows the intended mapping
+            'ID_STATE': a[1],
+          });
+        }
+      }
+
+      // PREDICAT (упрощённо)
+      if (await isEmpty('PREDICAT')) {
+        final preds = [
+          [1, 4, 1],
+          [2, 4, 2],
+          [3, 5, 3],
+          [3, 8, 4],
+          [4, 6, 5],
+          [4, 9, 6],
+          [5, 7, 7],
+          [6, 10, 8],
+          [7, 16, 9],
+          [8, 15, 10],
+        ];
+        for (var p in preds) {
+          await txn.insert('PREDICAT', {
+            'ID_STATE': p[0],
+            'ID_DEC': p[1],
+            'YES_PAR': p[2],
+          });
+        }
+      }
+
+      // PROCESS
+      if (await isEmpty('PROCESS')) {
+        await txn.insert('PROCESS', {
+          'NAME': 'Процесс включения нового комплектующего',
+          'SH_NAME': 'PR_NEW_CMP',
+          'TYPE_PR': 1,
+          'ID_CLASS': 1
+        });
+      }
+
+      // TRAJECTORY — запишем несколько шагов как в скрипте (через writeDec2 реализацию)
+      final trajCount = Sqflite.firstIntValue(
+              await txn.rawQuery('SELECT COUNT(1) FROM TRAJECTORY')) ??
+          0;
+      if (trajCount == 0) {
+        // Приводим к поведению WRITE_DEC2 (валидация)
+        Future<void> _writeDec2(
+            int pIdProcess, int pIdState, int pIdDec, int pIdPer) async {
+          // Получаем тип процесса
+          final rows = await txn.query('PROCESS',
+              columns: ['TYPE_PR'],
+              where: 'ID_PROCESS = ?',
+              whereArgs: [pIdProcess]);
+          if (rows.isEmpty) {
+            throw Exception('Процесс $pIdProcess не найден');
           }
+          final vTypePr = rows.first['TYPE_PR'] as int?;
+
+          // проверяем допустимость решения
+          final valid = Sqflite.firstIntValue(await txn.rawQuery(
+                  'SELECT COUNT(1) FROM DECISION WHERE ID_TYPE_PR = ? AND ID_STATE = ? AND ID_DEC = ?',
+                  [vTypePr, pIdState, pIdDec])) ??
+              0;
+          if (valid == 0) {
+            // невалидное решение — пропускаем или кидаем ошибку; здесь — кидаем
+            throw Exception(
+                'Недопустимое решение $pIdDec для состояния $pIdState');
+          }
+
+          // max pos
+          final maxPos = Sqflite.firstIntValue(await txn.rawQuery(
+                  'SELECT COALESCE(MAX(NUM_POS), 0) FROM TRAJECTORY WHERE ID_PROCESS = ?',
+                  [pIdProcess])) ??
+              0;
+
+          await txn.insert('TRAJECTORY', {
+            'ID_PROCESS': pIdProcess,
+            'NUM_POS': maxPos + 1,
+            'ID_STATE': pIdState,
+            'ID_DEC': pIdDec,
+            'ID_PER': pIdPer,
+            'D_TIME': DateTime.now().toIso8601String(),
+          });
         }
 
-        return parents;
-      } else {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.chemClass.name}');
+        // Выполняем шаги (как в оригинале)
+        try {
+          await _writeDec2(1, 1, 4, 1); // Шаг 1
+          await _writeDec2(1, 3, 5, 2); // КБ: Конструктор
+          await _writeDec2(1, 3, 5, 2); // КБ: повтор
+          await _writeDec2(1, 4, 6, 3); // ТО
+        } catch (e) {
+          // если что-то не так (напр. отсутствуют внешние зависимости), просто логируем (или пробрасываем)
+          // print('seedData: error writing trajectory: $e');
+        }
       }
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+    });
   }
 
-  @override
-  Future<List<ChemClass>> getAllChemClass() async {
-    try {
-      final database = await db;
-      final data = await database.query(TableName.chemClass.name);
-      return List.generate(
-          data.length, (index) => ChemClass.fromJson(data[index]));
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  // ----------------------------
+  // Методы чтения таблиц (возвращают List<Map<String, dynamic>>)
+  // ----------------------------
+  Future<List<EI>> getEi() async {
+    final database = await db;
+    final result = await database.query('EI', orderBy: 'ID_EI');
+    return result.map((e) => EI.fromJson(e)).toList();
   }
 
-  @override
-  Future<List<Prod>> getAllProds() async {
-    try {
-      final database = await db;
-      final data = await database.query(TableName.prod.name);
-      return List.generate(data.length, (index) => Prod.fromJson(data[index]));
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<TypeDecision>> getTypeDecision() async {
+    final database = await db;
+    final result = await database.query('TYPE_DECISION', orderBy: 'ID_DEC');
+    return result.map((e) => TypeDecision.fromJson(e)).toList();
   }
 
-  @override
-  Future<List<Unit>> getAllUnits() async {
-    try {
-      final database = await db;
-      final data = await database.query(TableName.unit.name);
-      return List.generate(data.length, (index) => Unit.fromJson(data[index]));
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<TypeState>> getTypeState() async {
+    final database = await db;
+    final result = await database.query('TYPE_STATE', orderBy: 'ID_STATE');
+    return result.map((e) => TypeState.fromJson(e)).toList();
   }
 
-  Future<bool> containsChemClass(int? id) async {
-    if (id == null) {
-      return false;
-    }
-    try {
-      final database = await db;
-      final data = await database.query(
-        TableName.chemClass.name,
-        where: 'id_class=?',
-        whereArgs: [id],
-      );
-      return data.isNotEmpty;
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<ChemClass>> getChemClass() async {
+    final database = await db;
+    final result = await database.query('CHEM_CLASS', orderBy: 'ID_CLASS');
+    return result.map((e) => ChemClass.fromJson(e)).toList();
   }
 
-  Future<bool> containsUnit(int? id) async {
-    if (id == null) {
-      return false;
-    }
-    try {
-      final database = await db;
-      final data = await database.query(
-        TableName.unit.name,
-        where: 'id_units=?',
-        whereArgs: [id],
-      );
-      return data.isNotEmpty;
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<GroupPerson>> getGrPerson() async {
+    final database = await db;
+    final result = await database.query('GR_PERSON', orderBy: 'ID_GR');
+    return result.map((e) => GroupPerson.fromJson(e)).toList();
   }
 
-  Future<bool> containsProd(int? id) async {
-    if (id == null) {
-      return false;
-    }
-    try {
-      final database = await db;
-      final data = await database.query(
-        TableName.unit.name,
-        where: 'id_prod=?',
-        whereArgs: [id],
-      );
-      return data.isNotEmpty;
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<Person>> getPerson() async {
+    final database = await db;
+    final result = await database.query('PERSON', orderBy: 'ID_PER');
+    return result.map((e) => Person.fromJson(e)).toList();
   }
 
-  @override
-  Future<void> addSpecProd(
-      int? idProd, int? positionNumber, int? idProdPart, int? quantity) async {
-    try {
-      if (idProd == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
-      }
-      if (idProd == idProdPart) {
-        throw Exception('Цикл при добавлении в таблицу ${TableName.prod.name}');
-      }
-      if (positionNumber == null && idProdPart == null && quantity == null) {
-        throw Exception('Пустая форма');
-      }
-      final database = await db;
-      await database.insert(
-        TableName.specProd.name,
-        {
-          "id_prod": idProd,
-          "position_number": positionNumber,
-          "id_prod_part": idProdPart,
-          "quantity": quantity,
-        },
-      );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<ConsistGroup>> getConsistGr() async {
+    final database = await db;
+    final result = await database.query('CONSIST_GR', orderBy: 'ID_GR, ID_PER');
+    return result.map((e) => ConsistGroup.fromJson(e)).toList();
   }
 
-  @override
-  Future<void> deleteSpecProd(int? id) async {
-    try {
-      if (id == null) {
-        throw Exception(
-            'Идентификатора класса не существует в таблице ${TableName.prod.name}');
-      }
-      final database = await db;
-      await database.delete(
-        TableName.specProd.name,
-        where: 'id_prod = ?',
-        whereArgs: [id],
-      );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
+  Future<List<TypeProcess>> getTypeProcess() async {
+    final database = await db;
+    final result =
+        await database.query('TYPE_PROCESS', orderBy: 'ID_TYPE_PROC');
+    return result.map((e) => TypeProcess.fromJson(e)).toList();
   }
 
-  @override
-  Future<void> editSpecProd({
-    required int? idProdGeneral,
-    required int? positionNumber,
-    required int? newIdProdPart,
-    required int? newQuantity,
+  Future<List<StateEntity>> getState() async {
+    final database = await db;
+    final result =
+        await database.query('STATE', orderBy: 'ID_TYPE_PR, ID_STATE');
+    return result.map((e) => StateEntity.fromJson(e)).toList();
+  }
+
+  Future<List<Decision>> getDecision() async {
+    final database = await db;
+    final result = await database.query('DECISION',
+        orderBy: 'ID_TYPE_PR, ID_STATE, ID_DEC');
+    return result.map((e) => Decision.fromJson(e)).toList();
+  }
+
+  Future<List<AccessState>> getAccessState() async {
+    final database = await db;
+    final result = await database.query('ACCESS_STATE',
+        orderBy: 'ID_TYPE_PR, ID_GR, ID_STATE');
+    return result.map((e) => AccessState.fromJson(e)).toList();
+  }
+
+  Future<List<Predicat>> getPredicat() async {
+    final database = await db;
+    final result = await database.query('PREDICAT', orderBy: 'ID_PRED');
+    return result.map((e) => Predicat.fromJson(e)).toList();
+  }
+
+  Future<List<Formula>> getFormula() async {
+    final database = await db;
+    final result =
+        await database.query('FORMULA', orderBy: 'ID_F, NUM_DIS, NUM_CON');
+    return result.map((e) => Formula.fromJson(e)).toList();
+  }
+
+  Future<List<ProcessEntity>> getProcess() async {
+    final database = await db;
+    final result = await database.query('PROCESS', orderBy: 'ID_PROCESS');
+    return result.map((e) => ProcessEntity.fromJson(e)).toList();
+  }
+
+  Future<List<Trajectory>> getTrajectory() async {
+    final database = await db;
+    final result =
+        await database.query('TRAJECTORY', orderBy: 'ID_PROCESS, NUM_POS');
+    return result.map((e) => Trajectory.fromJson(e)).toList();
+  }
+
+  // Аналог функции READ_TRAJECTORY(pIdProcess)
+  Future<List<Map<String, dynamic>>> readTrajectory(int pIdProcess) async {
+    final database = await db;
+    final sql = '''
+      SELECT 
+        t.NUM_POS as num_pos,
+        ts.NAME as state_name,
+        td.NAME as decision_name,
+        p.FIO as fio,
+        t.D_TIME as d_time
+      FROM TRAJECTORY t
+      JOIN TYPE_STATE ts ON ts.ID_STATE = t.ID_STATE
+      JOIN TYPE_DECISION td ON td.ID_DEC = t.ID_DEC
+      JOIN PERSON p ON p.ID_PER = t.ID_PER
+      WHERE t.ID_PROCESS = ?
+      ORDER BY t.NUM_POS
+    ''';
+    return await database.rawQuery(sql, [pIdProcess]);
+  }
+
+  // Вспомогательный метод: WRITE_DEC2 (аналог функции)
+  Future<void> writeDec2({
+    required int pIdProcess,
+    required int pIdState,
+    required int pIdDec,
+    required int pIdPer,
   }) async {
-    try {
-      if (idProdGeneral == null || positionNumber == null) {
-        throw Exception(
-            'Нет данных для такого ключа в таблице ${TableName.prod.name}');
-      }
+    final database = await db;
+    await database.transaction((txn) async {
+      // Получаем TYPE_PR из PROCESS
+      final rows = await txn.query('PROCESS',
+          columns: ['TYPE_PR'],
+          where: 'ID_PROCESS = ?',
+          whereArgs: [pIdProcess]);
+      if (rows.isEmpty) throw Exception('Процесс $pIdProcess не найден');
+      final vTypePr = rows.first['TYPE_PR'] as int?;
 
-      final database = await db;
+      // проверка наличия допустимого решения
+      final valid = Sqflite.firstIntValue(await txn.rawQuery(
+              'SELECT COUNT(1) FROM DECISION WHERE ID_TYPE_PR = ? AND ID_STATE = ? AND ID_DEC = ?',
+              [vTypePr, pIdState, pIdDec])) ??
+          0;
+      if (valid == 0)
+        throw Exception('Недопустимое решение $pIdDec для состояния $pIdState');
 
-      // Проверяем, существует ли строка спецификации
-      final existingSpec = await database.query(
-        TableName.specProd.name,
-        columns: ['id_prod', 'position_number'],
-        where: 'id_prod = ? AND position_number = ?',
-        whereArgs: [idProdGeneral, positionNumber],
-      );
+      // max NUM_POS
+      final maxPos = Sqflite.firstIntValue(await txn.rawQuery(
+              'SELECT COALESCE(MAX(NUM_POS), 0) FROM TRAJECTORY WHERE ID_PROCESS = ?',
+              [pIdProcess])) ??
+          0;
 
-      if (existingSpec.isEmpty) {
-        throw Exception('Ошибка: Строка спецификации не найдена.');
-      }
-
-      // Прямая проверка: продукт не может состоять сам из себя
-      if (idProdGeneral == newIdProdPart) {
-        throw Exception('Ошибка: Продукт не может состоять сам из себя.');
-      }
-
-      // Проверка на циклы
-      final isCycle = await database.rawQuery('''
-      WITH RECURSIVE check_cycle(id_general, id_part) AS (
-        SELECT id_prod, id_prod_part
-        FROM ${TableName.specProd.name}
-        WHERE id_prod = ?
-
-        UNION
-
-        SELECT sp.id_prod, sp.id_prod_part
-        FROM ${TableName.specProd.name} sp
-        JOIN check_cycle cc ON sp.id_prod = cc.id_part
-      )
-      SELECT COUNT(*) AS cycle_count
-      FROM check_cycle
-      WHERE id_general = ? AND id_part = ?;
-    ''', [newIdProdPart, newIdProdPart, idProdGeneral]);
-
-      if ((isCycle.first['cycle_count'] as int) > 0) {
-        throw Exception(
-            'Ошибка: Невозможно редактировать строку спецификации из-за циклической зависимости.');
-      }
-
-      // Обновляем строку спецификации
-      await database.update(
-        TableName.specProd.name,
-        {
-          'id_prod_part': newIdProdPart,
-          'quantity': newQuantity,
-        },
-        where: 'id_prod = ? AND position_number = ?',
-        whereArgs: [idProdGeneral, positionNumber],
-      );
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
-
-  @override
-  Future<List<SpecProd>> getAllSpecProds() async {
-    try {
-      final database = await db;
-      final data = await database.query(TableName.specProd.name);
-      return List.generate(
-          data.length, (index) => SpecProd.fromJson(data[index]));
-    } catch (e) {
-      log(e.toString());
-      rethrow;
-    }
-  }
-
-  Future<Map<int, int>> countClassAmount(int idProd) async {
-    // Карта для хранения итоговых количеств комплектующих
-    final Map<int, int> requiredParts = {};
-    final specProds = await getAllSpecProds();
-    // Очередь для обхода вложенных компонентов
-    final Queue<int> queue = Queue();
-    queue.add(idProd);
-
-    while (queue.isNotEmpty) {
-      final currentIdProd = queue.removeFirst();
-
-      // Получить все строки спецификации для текущего idProd
-      final currentSpecProds =
-          specProds.where((spec) => spec.idProd == currentIdProd);
-
-      for (final spec in currentSpecProds) {
-        if (spec.idProdPart != null && spec.quantity != null) {
-          // Добавить количество в итоговую карту
-          requiredParts.update(
-            spec.idProdPart!,
-            (existingQuantity) => existingQuantity + spec.quantity!,
-            ifAbsent: () => spec.quantity!,
-          );
-
-          // Добавить компонент в очередь для проверки его комплектующих
-          queue.add(spec.idProdPart!);
-        }
-      }
-    }
-
-    return requiredParts;
-  }
-
-  /// Метод для поиска всех элементов, связанных с idProd, в виде списка
-  Future<List<SpecProd>> showSpec(int idProd) async {
-    // Для имитации асинхронной загрузки данных из какого-либо источника
-    final specProds = await getAllSpecProds();
-
-    // Результирующий список всех элементов, связанных с idProd
-    List<SpecProd> result = [];
-
-    // Очередь для обработки всех найденных idProd
-    final Queue<int> queue = Queue();
-    queue.add(idProd);
-
-    // Пока есть элементы в очереди, ищем все связанные с ними компоненты
-    while (queue.isNotEmpty) {
-      final currentIdProd = queue.removeFirst();
-
-      // Фильтруем все спецификации для текущего idProd
-      final currentSpecProds =
-          specProds.where((spec) => spec.idProd == currentIdProd);
-
-      for (final spec in currentSpecProds) {
-        if (spec.idProdPart != null) {
-          result.add(spec); // Добавляем найденную спецификацию в результат
-          queue.add(spec
-              .idProdPart!); // Добавляем idProdPart в очередь для поиска связанных компонентов
-        }
-      }
-    }
-
-    return result;
+      await txn.insert('TRAJECTORY', {
+        'ID_PROCESS': pIdProcess,
+        'NUM_POS': maxPos + 1,
+        'ID_STATE': pIdState,
+        'ID_DEC': pIdDec,
+        'ID_PER': pIdPer,
+        'D_TIME': DateTime.now().toIso8601String(),
+      });
+    });
   }
 }

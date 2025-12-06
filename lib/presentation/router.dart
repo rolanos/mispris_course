@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
-import 'package:mispris_course/presentation/edit_page/edit_page.dart';
 import 'package:mispris_course/presentation/list_page/list_page.dart';
+import 'package:mispris_course/presentation/trajectory_page/trajectory_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _listTabNavigatorKey = GlobalKey<NavigatorState>();
-final _editTabNavigatorKey = GlobalKey<NavigatorState>();
+final _trayectoryTabNavigatorKey = GlobalKey<NavigatorState>();
 
 final router = GoRouter(
   initialLocation: '/list',
@@ -15,7 +15,7 @@ final router = GoRouter(
       builder: (context, state, shell) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Классификатор'),
+            title: const Text('Бизнес-логика'),
             backgroundColor: Colors.deepOrange.shade300,
           ),
           body: shell,
@@ -28,16 +28,16 @@ final router = GoRouter(
           routes: [
             GoRoute(
               path: '/list',
-              builder: (context, state) => const ListPage(),
+              builder: (context, state) => const EntitiesListPage(),
             ),
           ],
         ),
         StatefulShellBranch(
-          navigatorKey: _editTabNavigatorKey,
+          navigatorKey: _trayectoryTabNavigatorKey,
           routes: [
             GoRoute(
-              path: '/editor',
-              builder: (context, state) => const EditPage(),
+              path: '/trajectory',
+              builder: (context, state) => TrajectoryPage(),
             ),
           ],
         ),
@@ -63,12 +63,12 @@ class MainNavigationBar extends StatelessWidget {
         NavigationDestination(
           icon: Icon(Icons.list_alt_outlined),
           selectedIcon: Icon(Icons.list_alt_outlined),
-          label: 'Классификатор',
+          label: 'Бизнес-логика',
         ),
         NavigationDestination(
           icon: Icon(Icons.draw_rounded),
           selectedIcon: Icon(Icons.draw_rounded),
-          label: 'Редактор',
+          label: 'Траектория',
         ),
       ],
     );
