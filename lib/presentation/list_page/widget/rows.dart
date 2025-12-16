@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mispris_course/presentation/list_page/cubit/type_process_cubit.dart';
 import '../../../entity/entity.dart';
 
 class GrPersonRow extends StatelessWidget {
@@ -39,6 +41,10 @@ class ProcessRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final typePr = (context.read<TypeProcessCubit>().getTypeById(
+                          entity.typePr,
+                        )?.name ??
+                    '-');
     return Row(
       children: [
         Expanded(flex: 2, child: Text(entity.id.toString())),
@@ -47,7 +53,12 @@ class ProcessRow extends StatelessWidget {
         const VerticalDivider(width: 10),
         Expanded(flex: 6, child: Text(entity.name ?? '-')),
         const VerticalDivider(width: 10),
-        Expanded(flex: 6, child: Text(entity.typePr.toString())),
+        Expanded(
+          flex: 6,
+          child: Text(
+            typePr.toString(),
+          ),
+        ),
       ],
     );
   }
@@ -84,8 +95,6 @@ class TypeProcessRow extends StatelessWidget {
         Expanded(flex: 6, child: Text(entity.name ?? '-')),
         const VerticalDivider(width: 10),
         Expanded(flex: 6, child: Text(entity.shortName ?? '-')),
-        const VerticalDivider(width: 10),
-        Expanded(flex: 6, child: Text(entity.idClass.toString())),
       ],
     );
   }

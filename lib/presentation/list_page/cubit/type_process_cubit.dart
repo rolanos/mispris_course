@@ -10,6 +10,18 @@ class TypeProcessCubit extends Cubit<TypeProcessState> {
     final values = await DatabaseService.instance.getTypeProcess();
     emit(TypeProcessState(values: values));
   }
+
+  TypeProcess? getTypeById(int? id) {
+    if (id == null) {
+      return null;
+    }
+    final list = state.values.where((elem) => elem.id == id);
+    if (list.isEmpty) {
+      return null;
+    } else {
+      return list.first;
+    }
+  }
 }
 
 final class TypeProcessState {

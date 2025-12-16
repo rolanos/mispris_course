@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../entity/process.dart';
+import '../list_page/cubit/proccess_cubit.dart';
 import 'cubit/trajectory_result_cubit.dart';
 import 'widget/trajectory_item_widget.dart';
+import 'widget/write_dec_dialog.dart';
 
-class TrajectoryPage extends StatelessWidget {
+class TrajectoryPage extends StatefulWidget {
   TrajectoryPage({super.key});
 
-  final controller = TextEditingController();
+  @override
+  State<TrajectoryPage> createState() => _TrajectoryPageState();
+}
+
+class _TrajectoryPageState extends State<TrajectoryPage> {
+  ProcessEntity? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -17,16 +25,50 @@ class TrajectoryPage extends StatelessWidget {
         child: Column(
           spacing: 12,
           children: [
-            TextField(
-              controller: controller,
-              onTapOutside: (event) => FocusScope.of(context).unfocus(),
-              decoration: const InputDecoration(
-                hintText: 'Введите id процесса',
-              ),
-              keyboardType: TextInputType.number,
-              onChanged: (value) async {
-                await context.read<TrajectoryResultCubit>().getItems(value);
-              },
+            Row(
+              spacing: 20,
+              children: [
+                Flexible(
+                  child: BlocBuilder<ProccessCubit, ProccessState>(
+                    builder: (context, state) {
+                      return DropdownButton<ProcessEntity>(
+                        value: controller,
+                        items: List.generate(
+                          state.values.length,
+                          (i) => DropdownMenuItem(
+                            value: state.values[i],
+                            child: Text(
+                              state.values[i].name ?? '-',
+                            ),
+                          ),
+                        ),
+                        icon: SizedBox(),
+                        isExpanded: true,
+                        hint: const Text('Выберите процесс'),
+                        onChanged: (v) async {
+                          await context
+                              .read<TrajectoryResultCubit>()
+                              .getItems(v?.id.toString());
+                          setState(() => controller = v);
+                        },
+                      );
+                    },
+                  ),
+                ),
+                FloatingActionButton(
+                  onPressed: () async {
+                    await showDialog(
+                      context: context,
+                      builder: (context) => const WriteDec2Dialog(),
+                    );
+                  },
+                  child: const Center(
+                    child: Icon(
+                      Icons.add,
+                    ),
+                  ),
+                )
+              ],
             ),
             BlocBuilder<TrajectoryResultCubit, TrajectoryResultState>(
               builder: (context, state) {

@@ -14,5 +14,10 @@ final class TrajectoryResultError extends TrajectoryResultState {
 final class TrajectoryResultInitial extends TrajectoryResultState {
   final List<TrajectoryItem> items;
 
-  TrajectoryResultInitial({required this.items});
+  final int id;
+
+  TrajectoryResultInitial({
+    required this.items,
+    required this.id,
+  });
 }

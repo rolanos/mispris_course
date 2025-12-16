@@ -477,6 +477,49 @@ class DatabaseService {
     });
   }
 
+
+    // Вспомогательный метод: WRITE_DEC2 (аналог функции)
+  Future<void> writeDec2({
+    required int pIdProcess,
+    required int pIdState,
+    required int pIdDec,
+    required int pIdPer,
+  }) async {
+    final database = await db;
+    await database.transaction((txn) async {
+      // Получаем TYPE_PR из PROCESS
+      final rows = await txn.query('PROCESS',
+          columns: ['TYPE_PR'],
+          where: 'ID_PROCESS = ?',
+          whereArgs: [pIdProcess]);
+      if (rows.isEmpty) throw Exception('Процесс $pIdProcess не найден');
+      final vTypePr = rows.first['TYPE_PR'] as int?;
+
+      // проверка наличия допустимого решения
+      final valid = Sqflite.firstIntValue(await txn.rawQuery(
+              'SELECT COUNT(1) FROM DECISION WHERE ID_TYPE_PR = ? AND ID_STATE = ? AND ID_DEC = ?',
+              [vTypePr, pIdState, pIdDec])) ??
+          0;
+      if (valid == 0)
+        throw Exception('Недопустимое решение $pIdDec для состояния $pIdState');
+
+      // max NUM_POS
+      final maxPos = Sqflite.firstIntValue(await txn.rawQuery(
+              'SELECT COALESCE(MAX(NUM_POS), 0) FROM TRAJECTORY WHERE ID_PROCESS = ?',
+              [pIdProcess])) ??
+          0;
+
+      await txn.insert('TRAJECTORY', {
+        'ID_PROCESS': pIdProcess,
+        'NUM_POS': maxPos + 1,
+        'ID_STATE': pIdState,
+        'ID_DEC': pIdDec,
+        'ID_PER': pIdPer,
+        'D_TIME': DateTime.now().toIso8601String(),
+      });
+    });
+  }
+
   // ----------------------------
   // Методы чтения таблиц (возвращают List<Map<String, dynamic>>)
   // ----------------------------
@@ -594,47 +637,5 @@ class DatabaseService {
       ORDER BY t.NUM_POS
     ''';
     return await database.rawQuery(sql, [pIdProcess]);
-  }
-
-  // Вспомогательный метод: WRITE_DEC2 (аналог функции)
-  Future<void> writeDec2({
-    required int pIdProcess,
-    required int pIdState,
-    required int pIdDec,
-    required int pIdPer,
-  }) async {
-    final database = await db;
-    await database.transaction((txn) async {
-      // Получаем TYPE_PR из PROCESS
-      final rows = await txn.query('PROCESS',
-          columns: ['TYPE_PR'],
-          where: 'ID_PROCESS = ?',
-          whereArgs: [pIdProcess]);
-      if (rows.isEmpty) throw Exception('Процесс $pIdProcess не найден');
-      final vTypePr = rows.first['TYPE_PR'] as int?;
-
-      // проверка наличия допустимого решения
-      final valid = Sqflite.firstIntValue(await txn.rawQuery(
-              'SELECT COUNT(1) FROM DECISION WHERE ID_TYPE_PR = ? AND ID_STATE = ? AND ID_DEC = ?',
-              [vTypePr, pIdState, pIdDec])) ??
-          0;
-      if (valid == 0)
-        throw Exception('Недопустимое решение $pIdDec для состояния $pIdState');
-
-      // max NUM_POS
-      final maxPos = Sqflite.firstIntValue(await txn.rawQuery(
-              'SELECT COALESCE(MAX(NUM_POS), 0) FROM TRAJECTORY WHERE ID_PROCESS = ?',
-              [pIdProcess])) ??
-          0;
-
-      await txn.insert('TRAJECTORY', {
-        'ID_PROCESS': pIdProcess,
-        'NUM_POS': maxPos + 1,
-        'ID_STATE': pIdState,
-        'ID_DEC': pIdDec,
-        'ID_PER': pIdPer,
-        'D_TIME': DateTime.now().toIso8601String(),
-      });
-    });
   }
 }

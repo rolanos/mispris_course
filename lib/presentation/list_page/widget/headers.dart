@@ -239,16 +239,6 @@ class TypeProcessHeader extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 10),
-          Expanded(
-            flex: 6,
-            child: Text(
-              'Название типа процесса',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
         ],
       ),
     );

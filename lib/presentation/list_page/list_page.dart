@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mispris_course/presentation/list_page/widget/forms/group_person_dialog.dart';
+import 'package:mispris_course/presentation/list_page/widget/forms/person_dialog.dart';
+import 'package:mispris_course/presentation/list_page/widget/forms/process_dialog.dart';
+import 'package:mispris_course/presentation/list_page/widget/forms/type_process_dialog.dart';
+import 'package:mispris_course/presentation/list_page/widget/forms/type_state_dialog.dart';
 
 import 'cubit/cubit.dart';
 import 'widget/headers.dart';
@@ -22,16 +27,78 @@ class _EntitiesListPageState extends State<EntitiesListPage> {
       child: Column(
         spacing: 16,
         children: [
-          DropdownButton(
-            value: tableId,
-            items: const [
-              DropdownMenuItem(value: 0, child: Text('Группы людей')),
-              DropdownMenuItem(value: 1, child: Text('Люди')),
-              DropdownMenuItem(value: 2, child: Text('Процессы')),
-              DropdownMenuItem(value: 3, child: Text('Типы состояния')),
-              DropdownMenuItem(value: 4, child: Text('Типы процессов')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              DropdownButton(
+                value: tableId,
+                items: const [
+                  DropdownMenuItem(value: 0, child: Text('Группы людей')),
+                  DropdownMenuItem(value: 1, child: Text('Люди')),
+                  DropdownMenuItem(value: 2, child: Text('Процессы')),
+                  DropdownMenuItem(value: 3, child: Text('Типы состояния')),
+                  DropdownMenuItem(value: 4, child: Text('Типы процессов')),
+                ],
+                onChanged: (v) => setState(() => tableId = v ?? 0),
+              ),
+              FloatingActionButton(
+                onPressed: () async {
+                  switch (tableId) {
+                    case 0:
+                      await showDialog(
+                        context: context,
+                        builder: (context) => const GroupPersonDialog(),
+                      );
+                      if (context.mounted) {
+                        await context.read<GrPersonCubit>().getData();
+                      }
+                      break;
+                    case 1:
+                      await showDialog(
+                        context: context,
+                        builder: (context) => const PersonDialog(),
+                      );
+                      if (context.mounted) {
+                        await context.read<PersonCubit>().getData();
+                      }
+                      break;
+                    case 2:
+                      await showDialog(
+                        context: context,
+                        builder: (context) => const ProcessEntityDialog(),
+                      );
+                      if (context.mounted) {
+                        await context.read<ProccessCubit>().getData();
+                      }
+                      break;
+                    case 3:
+                      await showDialog(
+                        context: context,
+                        builder: (context) => const TypeStateDialog(),
+                      );
+                      if (context.mounted) {
+                        await context.read<TypeStateCubit>().getData();
+                      }
+                      break;
+                    case 4:
+                      await showDialog(
+                        context: context,
+                        builder: (context) => const TypeProcessDialog(),
+                      );
+                      if (context.mounted) {
+                        await context.read<TypeProcessCubit>().getData();
+                      }
+                      break;
+                    default:
+                  }
+                },
+                child: const Center(
+                  child: Icon(
+                    Icons.add,
+                  ),
+                ),
+              ),
             ],
-            onChanged: (v) => setState(() => tableId = v ?? 0),
           ),
 
           // ==============================
